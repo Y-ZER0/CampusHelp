@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import '../styling/Header.css';
 
@@ -6,19 +6,50 @@ const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
-  const [isLoggedIn, setIsLoggedIn] = useState(localStorage.getItem('isLoggedIn') === 'true');
-  const userType = localStorage.getItem('userType');
+  const [user, setUser] = useState(null);
+
+  // This effect will run on component mount and whenever the location changes
+  // This ensures the header updates when user logs in/out
+  useEffect(() => {
+    // Check if user is logged in
+    const userData = localStorage.getItem('user');
+    if (userData) {
+      const parsedUser = JSON.parse(userData);
+      // Only set the user if they are logged in
+      if (parsedUser.isLoggedIn) {
+        setUser(parsedUser);
+      } else {
+        setUser(null);
+      }
+    } else {
+      setUser(null);
+    }
+  }, [location.pathname]); // Re-check when route changes
 
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
   };
 
   const handleLogout = () => {
-    localStorage.removeItem('isLoggedIn');
+    // Get the current user data
+    const userData = localStorage.getItem('user');
+    
+    if (userData) {
+      const user = JSON.parse(userData);
+      // Update the isLoggedIn property to false instead of removing
+      user.isLoggedIn = false;
+      localStorage.setItem('user', JSON.stringify(user));
+    }
+    
+    // Clear other session data
     localStorage.removeItem('userType');
     localStorage.removeItem('userId');
-    setIsLoggedIn(false);
-    navigate('/');
+    
+    // Update state to trigger re-render
+    setUser(null);
+    
+    // Navigate to login page
+    navigate('/login');
   };
 
   // Function to determine if the current path is active
@@ -44,25 +75,23 @@ const Header = () => {
 
         <nav className={`main-nav ${isMenuOpen ? 'show' : ''}`}>
           <ul>
-            <li>
-              <Link to="/" className={isActive('/')}>
-                Home
-              </Link>
-            </li>
-            {isLoggedIn ? (
+            {user && user.isLoggedIn ? (
               <>
                 <li>
-                  <Link to={`/dashboard/${userType}`} className={isActive(`/dashboard/${userType}`)}>
+                  <Link to="/dashboard" className={isActive('/dashboard')}>
                     Dashboard
                   </Link>
                 </li>
-                {userType === 'volunteer' && (
-                  <li>
-                    <Link to="/requests" className={isActive('/requests')}>
-                      Requests
-                    </Link>
-                  </li>
-                )}
+                <li>
+                  <Link to="/volunteer-mode" className={isActive('/volunteer-mode')}>
+                    I Want to Help
+                  </Link>
+                </li>
+                <li>
+                  <Link to="/patient-mode" className={isActive('/patient-mode')}>
+                    I Need Help
+                  </Link>
+                </li>
                 <li>
                   <button className="logout-btn" onClick={handleLogout}>
                     Logout
@@ -72,13 +101,13 @@ const Header = () => {
             ) : (
               <>
                 <li>
-                  <Link to="/register/patient" className={isActive('/register/patient')}>
-                    I Need Help
+                  <Link to="/login" className={isActive('/login')}>
+                    Login
                   </Link>
                 </li>
                 <li>
-                  <Link to="/register/volunteer" className={isActive('/register/volunteer')}>
-                    I Want to Help
+                  <Link to="/register" className={isActive('/register')}>
+                    Register
                   </Link>
                 </li>
               </>

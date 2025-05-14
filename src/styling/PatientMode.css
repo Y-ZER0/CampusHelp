@@ -1,0 +1,249 @@
+/* PatientMode.css */
+.patient-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem 1rem;
+}
+
+.patient-header {
+  text-align: center;
+  margin-bottom: 2.5rem;
+}
+
+.patient-header h1 {
+  font-size: 2.5rem;
+  color: #2c3e50;
+  margin-bottom: 0.5rem;
+}
+
+.patient-header p {
+  font-size: 1.2rem;
+  color: #7f8c8d;
+}
+
+.mode-switcher {
+  margin-bottom: 2rem;
+  display: flex;
+  justify-content: center;
+}
+
+.success-message {
+  margin-bottom: 2rem;
+}
+
+.success-content {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #d1fae5;
+  color: #10b981;
+  padding: 1rem;
+  border-radius: 8px;
+  font-weight: 500;
+}
+
+.success-content svg {
+  margin-right: 0.75rem;
+}
+
+.request-form-card {
+  background-color: #fff;
+  border-radius: 12px;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
+  padding: 2rem;
+  margin-bottom: 3rem;
+}
+
+.request-form .form-group {
+  margin-bottom: 1.5rem;
+}
+
+.form-row {
+  display: flex;
+  gap: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.form-row .form-group {
+  flex: 1;
+  margin-bottom: 0;
+}
+
+.request-form label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+  color: #2c3e50;
+}
+
+.request-form input[type="text"],
+.request-form input[type="date"],
+.request-form input[type="time"],
+.request-form select,
+.request-form textarea {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 1rem;
+  transition: border-color 0.3s;
+}
+
+.request-form input:focus,
+.request-form select:focus,
+.request-form textarea:focus {
+  border-color: #3498db;
+  outline: none;
+}
+
+.request-form input.error,
+.request-form select.error,
+.request-form textarea.error {
+  border-color: #e74c3c;
+}
+
+.error-message {
+  color: #e74c3c;
+  font-size: 0.875rem;
+  margin-top: 0.5rem;
+}
+
+.form-note {
+  background-color: #f8fafc;
+  padding: 1rem;
+  border-radius: 6px;
+  margin-bottom: 1.5rem;
+  color: #64748b;
+  font-size: 0.9rem;
+}
+
+.form-actions {
+  display: flex;
+  justify-content: center;
+}
+
+.btn-primary, .btn-secondary {
+  padding: 0.75rem 1.5rem;
+  border-radius: 6px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: all 0.3s ease;
+  border: none;
+  cursor: pointer;
+  font-size: 1rem;
+  text-align: center;
+  display: inline-block;
+}
+
+.btn-primary {
+  background-color: #3498db;
+  color: white;
+}
+
+.btn-primary:hover {
+  background-color: #2980b9;
+}
+
+.btn-secondary {
+  background-color: #ecf0f1;
+  color: #2c3e50;
+}
+
+.btn-secondary:hover {
+  background-color: #dfe6e9;
+}
+
+.request-info-section {
+  background-color: #f8fafc;
+  border-radius: 12px;
+  padding: 2rem;
+}
+
+.request-info-section h3 {
+  text-align: center;
+  margin-bottom: 1.5rem;
+  font-size: 1.5rem;
+  color: #2c3e50;
+}
+
+.info-steps {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1.5rem;
+}
+
+.info-step {
+  display: flex;
+  align-items: flex-start;
+}
+
+.step-number {
+  background-color: #3498db;
+  color: white;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  margin-right: 1rem;
+  flex-shrink: 0;
+}
+
+.info-step p {
+  margin: 0;
+  color: #4b5563;
+}
+
+.loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 50vh;
+  font-size: 1.5rem;
+  color: #7f8c8d;
+}
+
+.your-requests-section {
+  margin-bottom: 2rem;
+}
+
+.your-request {
+  border-left: 4px solid #3498db;
+}
+
+.btn-cancel {
+  background-color: #e74c3c;
+  color: white;
+  padding: 0.75rem 1.5rem;
+  border-radius: 6px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: all 0.3s ease;
+  border: none;
+  cursor: pointer;
+  font-size: 1rem;
+  text-align: center;
+  display: inline-block;
+  width: 100%;
+}
+
+.btn-cancel:hover {
+  background-color: #c0392b;
+}
+
+@media (max-width: 768px) {
+  .form-row {
+    flex-direction: column;
+    gap: 0;
+  }
+  
+  .request-form-card {
+    padding: 1.5rem;
+  }
+  
+  .info-steps {
+    grid-template-columns: 1fr;
+  }
+}

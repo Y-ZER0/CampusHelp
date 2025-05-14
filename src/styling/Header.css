@@ -76,8 +76,8 @@
   background-color: #e74c3c;
   color: white;
   border: none;
-  padding: 8px 16px;
-  border-radius: 4px;
+  padding: 0.75rem 1.5rem; 
+  border-radius: 6px; 
   cursor: pointer;
   font-weight: 600;
   transition: background-color 0.3s ease;

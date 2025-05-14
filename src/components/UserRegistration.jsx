@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import '../../styling/Registration.css'; // Adjust the path as necessary
+import '../styling/Registration.css';
 
-const VolunteerRegistration = () => {
+const UserRegistration = () => {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
     firstName: '',
@@ -12,65 +12,18 @@ const VolunteerRegistration = () => {
     confirmPassword: '',
     studentId: '',
     phone: '',
-    availability: [],
-    supportAreas: [],
-    biography: '',
     agreeTerms: false,
-    agreeBackground: false
   });
   
   const [errors, setErrors] = useState({});
   
-  const availabilityOptions = [
-    { id: 'weekday_morning', label: 'Weekday Mornings' },
-    { id: 'weekday_afternoon', label: 'Weekday Afternoons' },
-    { id: 'weekday_evening', label: 'Weekday Evenings' },
-    { id: 'weekend_morning', label: 'Weekend Mornings' },
-    { id: 'weekend_afternoon', label: 'Weekend Afternoons' },
-    { id: 'weekend_evening', label: 'Weekend Evenings' }
-  ];
-  
-  const supportAreaOptions = [
-    { id: 'mobility', label: 'Mobility Assistance' },
-    { id: 'note_taking', label: 'Note Taking' },
-    { id: 'reading', label: 'Reading Materials Aloud' },
-    { id: 'study_buddy', label: 'Study Partner' },
-    { id: 'tech_help', label: 'Technology Assistance' },
-    { id: 'transportation', label: 'Campus Transportation' },
-    { id: 'errands', label: 'Errands & Pickup Services' },
-    { id: 'social', label: 'Social Support' }
-  ];
-  
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
     
-    if (type === 'checkbox') {
-      if (name === 'agreeTerms' || name === 'agreeBackground') {
-        setFormData({
-          ...formData,
-          [name]: checked
-        });
-      } else {
-        // For arrays like availability and supportAreas
-        const arrayField = formData[name];
-        if (checked) {
-          setFormData({
-            ...formData,
-            [name]: [...arrayField, value]
-          });
-        } else {
-          setFormData({
-            ...formData,
-            [name]: arrayField.filter(item => item !== value)
-          });
-        }
-      }
-    } else {
-      setFormData({
-        ...formData,
-        [name]: value
-      });
-    }
+    setFormData({
+      ...formData,
+      [name]: type === 'checkbox' ? checked : value
+    });
   };
   
   const validateForm = () => {
@@ -81,7 +34,7 @@ const VolunteerRegistration = () => {
     if (!formData.lastName.trim()) newErrors.lastName = 'Last name is required';
     if (!formData.email.trim()) newErrors.email = 'Email is required';
     if (!formData.studentId.trim()) newErrors.studentId = 'Student ID is required';
-    if (!formData.phone.trim()) newErrors.phone = 'Phone number is required';
+    if (!formData.phone?.trim()) newErrors.phone = 'Phone number is required';
     
     // Email validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -89,10 +42,12 @@ const VolunteerRegistration = () => {
       newErrors.email = 'Please enter a valid email address';
     }
     
-    // Phone validation
-    const phoneRegex = /^\d{10}$/;
-    if (formData.phone && !phoneRegex.test(formData.phone.replace(/\D/g, ''))) {
-      newErrors.phone = 'Please enter a valid 10-digit phone number';
+    // Phone validation (if entered)
+    if (formData.phone) {
+      const phoneRegex = /^\d{10}$/;
+      if (!phoneRegex.test(formData.phone.replace(/\D/g, ''))) {
+        newErrors.phone = 'Please enter a valid 10-digit phone number';
+      }
     }
     
     // Password validation
@@ -107,24 +62,9 @@ const VolunteerRegistration = () => {
       newErrors.confirmPassword = 'Passwords do not match';
     }
     
-    // Availability validation
-    if (formData.availability.length === 0) {
-      newErrors.availability = 'Please select at least one availability option';
-    }
-    
-    // Support areas validation
-    if (formData.supportAreas.length === 0) {
-      newErrors.supportAreas = 'Please select at least one area you can support';
-    }
-    
     // Terms agreement
     if (!formData.agreeTerms) {
       newErrors.agreeTerms = 'You must agree to the terms and conditions';
-    }
-    
-    // Background check agreement
-    if (!formData.agreeBackground) {
-      newErrors.agreeBackground = 'You must agree to the background check policy';
     }
     
     return newErrors;
@@ -137,9 +77,20 @@ const VolunteerRegistration = () => {
     if (Object.keys(newErrors).length === 0) {
       // Form is valid, submit data
       console.log('Form submitted successfully', formData);
-      // In a real app, you would send this data to your backend
-      // For now, just navigate to a success page or dashboard
-      navigate('/dashboard/volunteer');
+      
+      // Save user data to localStorage (in a real app, this would be sent to a backend)
+      localStorage.setItem('user', JSON.stringify({
+        id: Math.random().toString(36).substr(2, 9), // Generate simple ID
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+        email: formData.email,
+        studentId: formData.studentId,
+        phone: formData.phone,
+        isLoggedIn: true
+      }));
+      
+      // Navigate to the mode selection dashboard
+      navigate('/dashboard');
     } else {
       // Form has errors
       setErrors(newErrors);
@@ -154,14 +105,14 @@ const VolunteerRegistration = () => {
   return (
     <div className="registration-container">
       <div className="registration-header">
-        <h1>Volunteer Registration</h1>
-        <p>Create an account to help students with special needs on campus</p>
+        <h1>User Registration</h1>
+        <p>Create an account to access all campus support services</p>
       </div>
       
       <div className="registration-card">
         <form className="registration-form" onSubmit={handleSubmit}>
           <div className="form-section">
-            <h2>Personal Information</h2>
+            <h2>Account Information</h2>
             
             <div className="form-row">
               <div className="form-group">
@@ -262,62 +213,6 @@ const VolunteerRegistration = () => {
             </div>
           </div>
           
-          <div className="form-section">
-            <h2>Volunteer Information</h2>
-            
-            <div className="form-group">
-              <label>Availability*</label>
-              <div className="checkbox-grid">
-                {availabilityOptions.map(option => (
-                  <div key={option.id} className="checkbox-container">
-                    <input
-                      type="checkbox"
-                      id={`availability-${option.id}`}
-                      name="availability"
-                      value={option.id}
-                      checked={formData.availability.includes(option.id)}
-                      onChange={handleChange}
-                    />
-                    <label htmlFor={`availability-${option.id}`}>{option.label}</label>
-                  </div>
-                ))}
-              </div>
-              {errors.availability && <div className="error-message">{errors.availability}</div>}
-            </div>
-            
-            <div className="form-group">
-              <label>Support Areas*</label>
-              <div className="checkbox-grid">
-                {supportAreaOptions.map(option => (
-                  <div key={option.id} className="checkbox-container">
-                    <input
-                      type="checkbox"
-                      id={`supportAreas-${option.id}`}
-                      name="supportAreas"
-                      value={option.id}
-                      checked={formData.supportAreas.includes(option.id)}
-                      onChange={handleChange}
-                    />
-                    <label htmlFor={`supportAreas-${option.id}`}>{option.label}</label>
-                  </div>
-                ))}
-              </div>
-              {errors.supportAreas && <div className="error-message">{errors.supportAreas}</div>}
-            </div>
-            
-            <div className="form-group">
-              <label htmlFor="biography">About You (Optional)</label>
-              <textarea
-                id="biography"
-                name="biography"
-                value={formData.biography}
-                onChange={handleChange}
-                placeholder="Tell us a bit about yourself, your experiences, and why you want to volunteer."
-                rows="4"
-              ></textarea>
-            </div>
-          </div>
-          
           <div className="form-group terms-group">
             <div className="checkbox-container">
               <input
@@ -335,26 +230,13 @@ const VolunteerRegistration = () => {
             {errors.agreeTerms && <div className="error-message">{errors.agreeTerms}</div>}
           </div>
           
-          <div className="form-group terms-group">
-            <div className="checkbox-container">
-              <input
-                type="checkbox"
-                id="agreeBackground"
-                name="agreeBackground"
-                checked={formData.agreeBackground}
-                onChange={handleChange}
-                className={errors.agreeBackground ? 'error' : ''}
-              />
-              <label htmlFor="agreeBackground">
-                I understand that volunteering may require a background check and training
-              </label>
-            </div>
-            {errors.agreeBackground && <div className="error-message">{errors.agreeBackground}</div>}
+          <div className="form-note">
+            <p>After registration, you'll be able to use both volunteer and assistance services.</p>
           </div>
           
           <div className="form-actions">
-            <Link to="/" className="btn-secondary">Go Back</Link>
-            <button type="submit" className="btn-primary">Register Account</button>
+            <Link to="/login" className="btn-secondary">Go Back</Link>
+            <button type="submit" className="btn-primary">Create Account</button>
           </div>
         </form>
       </div>
@@ -362,4 +244,4 @@ const VolunteerRegistration = () => {
   );
 };
 
-export default VolunteerRegistration;
+export default UserRegistration;

@@ -15,7 +15,7 @@ const Footer = () => {
               Connecting students with special needs to volunteer helpers on campus.
               Together, we build a more inclusive educational environment.
             </p>
-            <div className="social-links">
+            {/* <div className="social-links">
               <a href="https://facebook.com" target="_blank" rel="noopener noreferrer" aria-label="Facebook">
                 <i className="fa fa-facebook"></i>
               </a>
@@ -25,7 +25,7 @@ const Footer = () => {
               <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" aria-label="Instagram">
                 <i className="fa fa-instagram"></i>
               </a>
-            </div>
+            </div> */}
           </div>
 
           <div className="footer-section links">
@@ -35,10 +35,13 @@ const Footer = () => {
                 <Link to="/">Home</Link>
               </li>
               <li>
-                <Link to="/register/patient">Register as Patient</Link>
+                <Link to="/dashboard">Dashboard</Link>
               </li>
               <li>
-                <Link to="/register/volunteer">Become a Volunteer</Link>
+                <Link to="/volunteer-mode">Volunteer Mode</Link>
+              </li>
+              <li>
+                <Link to="/patient-mode">Request Assistance</Link>
               </li>
               <li>
                 <Link to="/resources">Resources</Link>

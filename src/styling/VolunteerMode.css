@@ -1,0 +1,184 @@
+.volunteer-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem 1rem;
+}
+
+.volunteer-header {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.volunteer-header h1 {
+  font-size: 2.25rem;
+  color: #2c3e50;
+  margin-bottom: 0.5rem;
+}
+
+.volunteer-header p {
+  font-size: 1.1rem;
+  color: #7f8c8d;
+}
+
+.mode-switcher {
+  display: flex;
+  justify-content: flex-start;
+  margin-bottom: 2rem;
+}
+
+.requests-section {
+  margin-bottom: 3rem;
+}
+
+.requests-section h2 {
+  font-size: 1.5rem;
+  color: #2c3e50;
+  margin-bottom: 1.5rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid #e1e8ed;
+}
+
+.requests-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 1.5rem;
+}
+
+.request-card {
+  background-color: #fff;
+  border-radius: 8px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.request-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+}
+
+.request-card.accepted {
+  border-left: 4px solid #27ae60;
+}
+
+.request-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.request-category {
+  background-color: #3498db;
+  color: white;
+  padding: 0.25rem 0.75rem;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
+.request-status {
+  color: #27ae60;
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.request-card h3 {
+  font-size: 1.25rem;
+  margin-bottom: 1rem;
+  color: #2c3e50;
+}
+
+.request-details {
+  flex-grow: 1;
+}
+
+.request-details p {
+  margin-bottom: 0.5rem;
+  color: #34495e;
+  line-height: 1.4;
+}
+
+.request-description {
+  margin-top: 0.75rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid #f1f1f1;
+  font-style: italic;
+  color: #7f8c8d;
+}
+
+.request-actions {
+  margin-top: 1.5rem;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.btn-primary, .btn-secondary, .btn-contact {
+  padding: 0.6rem 1.2rem;
+  border-radius: 6px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: all 0.3s ease;
+  border: none;
+  cursor: pointer;
+  font-size: 0.95rem;
+}
+
+.btn-primary {
+  background-color: #3498db;
+  color: white;
+}
+
+.btn-primary:hover {
+  background-color: #2980b9;
+}
+
+.btn-secondary {
+  background-color: #ecf0f1;
+  color: #2c3e50;
+}
+
+.btn-secondary:hover {
+  background-color: #dfe6e9;
+}
+
+.btn-contact {
+  background-color: #27ae60;
+  color: white;
+}
+
+.btn-contact:hover {
+  background-color: #219653;
+}
+
+.no-requests {
+  background-color: #f8f9fa;
+  border-radius: 8px;
+  padding: 2rem;
+  text-align: center;
+  color: #7f8c8d;
+}
+
+.request-own-tag {
+  background-color: #3498db;
+  color: white;
+  font-size: 0.8rem;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  margin-left: 0.5rem;
+}
+
+.own-request-notice {
+  color: #7f8c8d;
+  font-style: italic;
+  text-align: center;
+  padding: 0.5rem;
+}
+
+@media (max-width: 768px) {
+  .requests-grid {
+    grid-template-columns: 1fr;
+  }
+}
