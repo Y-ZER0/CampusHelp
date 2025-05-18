@@ -10,7 +10,6 @@ const UserRegistration = () => {
     email: '',
     password: '',
     confirmPassword: '',
-    studentId: '',
     phone: '',
     agreeTerms: false,
   });
@@ -33,7 +32,6 @@ const UserRegistration = () => {
     if (!formData.firstName.trim()) newErrors.firstName = 'First name is required';
     if (!formData.lastName.trim()) newErrors.lastName = 'Last name is required';
     if (!formData.email.trim()) newErrors.email = 'Email is required';
-    if (!formData.studentId.trim()) newErrors.studentId = 'Student ID is required';
     if (!formData.phone?.trim()) newErrors.phone = 'Phone number is required';
     
     // Email validation
@@ -84,7 +82,6 @@ const UserRegistration = () => {
         firstName: formData.firstName,
         lastName: formData.lastName,
         email: formData.email,
-        studentId: formData.studentId,
         phone: formData.phone,
         isLoggedIn: true
       }));
@@ -155,33 +152,18 @@ const UserRegistration = () => {
               {errors.email && <div className="error-message">{errors.email}</div>}
             </div>
             
-            <div className="form-row">
-              <div className="form-group">
-                <label htmlFor="studentId">Student ID*</label>
-                <input
-                  type="text"
-                  id="studentId"
-                  name="studentId"
-                  value={formData.studentId}
-                  onChange={handleChange}
-                  className={errors.studentId ? 'error' : ''}
-                />
-                {errors.studentId && <div className="error-message">{errors.studentId}</div>}
-              </div>
-              
-              <div className="form-group">
-                <label htmlFor="phone">Phone Number*</label>
-                <input
-                  type="tel"
-                  id="phone"
-                  name="phone"
-                  value={formData.phone}
-                  onChange={handleChange}
-                  placeholder="(123) 456-7890"
-                  className={errors.phone ? 'error' : ''}
-                />
-                {errors.phone && <div className="error-message">{errors.phone}</div>}
-              </div>
+            <div className="form-group">
+              <label htmlFor="phone">Phone Number*</label>
+              <input
+                type="tel"
+                id="phone"
+                name="phone"
+                value={formData.phone}
+                onChange={handleChange}
+                placeholder="(123) 456-7890"
+                className={errors.phone ? 'error' : ''}
+              />
+              {errors.phone && <div className="error-message">{errors.phone}</div>}
             </div>
             
             <div className="form-row">
