@@ -15,6 +15,7 @@ const VolunteerMode = () => {
       time: '10:00 AM',
       location: 'Main Campus Library',
       description: 'Need assistance navigating to the third floor research section and carrying materials.',
+      phone: '(555) 123-4567',
       status: 'open'
     },
     {
@@ -26,6 +27,7 @@ const VolunteerMode = () => {
       time: '2:30 PM',
       location: 'Science Building, Room 203',
       description: 'Looking for someone to take notes during Physics lecture. I have hearing impairment and miss some content.',
+      phone: '(555) 987-6543',
       status: 'open'
     },
     {
@@ -37,6 +39,7 @@ const VolunteerMode = () => {
       time: '1:00 PM',
       location: 'Student Center',
       description: 'Need help reading through course materials due to visual impairment.',
+      phone: '(555) 456-7890',
       status: 'open'
     }
   ]);
@@ -64,34 +67,6 @@ const VolunteerMode = () => {
     setLoading(false);
   }, []);
 
-  const handleAcceptRequest = (requestId) => {
-    // Check if this is the user's own request
-    const request = assistanceRequests.find(req => req.id === requestId);
-    if (request && request.requestedBy === user.id) {
-      alert("You cannot accept your own request. Please wait for another volunteer.");
-      return;
-    }
-    
-    setAssistanceRequests(requests => 
-      requests.map(req => 
-        req.id === requestId 
-          ? { ...req, status: 'accepted', volunteerName: `${user.firstName} ${user.lastName}` } 
-          : req
-      )
-    );
-    
-    // Update localStorage
-    const updatedRequests = assistanceRequests.map(req => 
-      req.id === requestId 
-        ? { ...req, status: 'accepted', volunteerName: `${user.firstName} ${user.lastName}` } 
-        : req
-    );
-    localStorage.setItem('assistanceRequests', JSON.stringify(updatedRequests));
-    
-    // In a real app, this would send the information to a backend
-    alert('Request accepted! Contact information will be shared via email.');
-  };
-
   // If not logged in, redirect to login
   if (!loading && !user) {
     return <Navigate to="/login" />;
@@ -101,11 +76,8 @@ const VolunteerMode = () => {
     return <div className="loading">Loading...</div>;
   }
 
-  // Filter to just show open requests
+  // Show all open requests
   const openRequests = assistanceRequests.filter(req => req.status === 'open');
-  const acceptedRequests = assistanceRequests.filter(req => 
-    req.status === 'accepted' && req.volunteerName === `${user.firstName} ${user.lastName}`
-  );
 
   return (
     <div className="volunteer-container">
@@ -119,32 +91,6 @@ const VolunteerMode = () => {
           ← Back to Dashboard
         </Link>
       </div>
-
-      {acceptedRequests.length > 0 && (
-        <div className="requests-section">
-          <h2>Your Accepted Requests</h2>
-          <div className="requests-grid">
-            {acceptedRequests.map(request => (
-              <div key={request.id} className="request-card accepted">
-                <div className="request-header">
-                  <span className="request-category">{request.categoryLabel}</span>
-                  <span className="request-status">Accepted</span>
-                </div>
-                <h3>{request.name}</h3>
-                <div className="request-details">
-                  <p><strong>Date:</strong> {request.date}</p>
-                  <p><strong>Time:</strong> {request.time}</p>
-                  <p><strong>Location:</strong> {request.location}</p>
-                  <p className="request-description">{request.description}</p>
-                </div>
-                <div className="request-actions">
-                  <button className="btn-contact">Contact Student</button>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
 
       <div className="requests-section">
         <h2>Open Assistance Requests</h2>
@@ -168,18 +114,11 @@ const VolunteerMode = () => {
                   <p><strong>Time:</strong> {request.time}</p>
                   <p><strong>Location:</strong> {request.location}</p>
                   <p className="request-description">{request.description}</p>
-                </div>
-                <div className="request-actions">
                   {request.requestedBy !== user.id ? (
-                    <button 
-                      className="btn-primary"
-                      onClick={() => handleAcceptRequest(request.id)}
-                    >
-                      Accept Request
-                    </button>
+                    <p className="request-contact"><strong>Contact:</strong> <a href={`tel:${request.phone}`}>{request.phone || 'No phone provided'}</a></p>
                   ) : (
                     <div className="own-request-notice">
-                      This is your own request. Wait for a volunteer to accept it.
+                      This is your own request. Wait for a volunteer to contact you.
                     </div>
                   )}
                 </div>
@@ -187,6 +126,28 @@ const VolunteerMode = () => {
             ))}
           </div>
         )}
+      </div>
+      
+      <div className="volunteer-info-section">
+        <h3>Volunteer Guidelines</h3>
+        <div className="info-steps">
+          <div className="info-step">
+            <div className="step-number">1</div>
+            <p>Review assistance requests that match your skills and availability</p>
+          </div>
+          <div className="info-step">
+            <div className="step-number">2</div>
+            <p>Call the student directly using the phone number provided</p>
+          </div>
+          <div className="info-step">
+            <div className="step-number">3</div>
+            <p>Coordinate with the student to provide the assistance they need</p>
+          </div>
+          <div className="info-step">
+            <div className="step-number">4</div>
+            <p>Students will delete their requests once they've received help</p>
+          </div>
+        </div>
       </div>
     </div>
   );

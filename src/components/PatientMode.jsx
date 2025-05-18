@@ -11,6 +11,7 @@ const PatientMode = () => {
     time: '',
     location: '',
     description: '',
+    phone: '', // Added phone field for contact
   });
   const [errors, setErrors] = useState({});
   const [requestSubmitted, setRequestSubmitted] = useState(false);
@@ -31,6 +32,15 @@ const PatientMode = () => {
     const userData = localStorage.getItem('user');
     if (userData) {
       setUser(JSON.parse(userData));
+      
+      // Pre-fill phone field with user's phone if available
+      const parsedUser = JSON.parse(userData);
+      if (parsedUser.phone) {
+        setFormData(prev => ({
+          ...prev,
+          phone: parsedUser.phone
+        }));
+      }
     }
     setLoading(false);
   }, []);
@@ -63,6 +73,15 @@ const PatientMode = () => {
     if (!formData.time) newErrors.time = 'Time is required';
     if (!formData.location?.trim()) newErrors.location = 'Location is required';
     if (!formData.description?.trim()) newErrors.description = 'Description is required';
+    if (!formData.phone?.trim()) newErrors.phone = 'Phone number is required for contact';
+    
+    // Phone validation
+    if (formData.phone) {
+      const phoneRegex = /^\d{10}$/;
+      if (!phoneRegex.test(formData.phone.replace(/\D/g, ''))) {
+        newErrors.phone = 'Please enter a valid 10-digit phone number';
+      }
+    }
     
     // Date validation (must be today or in the future)
     if (formData.date) {
@@ -95,8 +114,10 @@ const PatientMode = () => {
         time: formData.time,
         location: formData.location,
         description: formData.description,
+        phone: formData.phone, // Include phone number for direct contact
         status: 'open',
-        requestedBy: user.id
+        requestedBy: user.id,
+        contactDetails: user.email || 'Contact details will be provided directly'
       };
       
       // Save to localStorage (in a real app, this would be sent to a backend)
@@ -111,6 +132,7 @@ const PatientMode = () => {
         time: '',
         location: '',
         description: '',
+        phone: user?.phone || '', // Keep the phone number for next request
       });
       
       setRequestSubmitted(true);
@@ -130,10 +152,10 @@ const PatientMode = () => {
     }
   };
 
-  const handleCancelRequest = (requestId) => {
-    const confirmCancel = window.confirm("Are you sure you want to cancel this request?");
+  const handleDeleteRequest = (requestId) => {
+    const confirmDelete = window.confirm("Are you sure you want to delete this request? Only delete if you've been contacted by a volunteer and no longer need assistance.");
     
-    if (confirmCancel) {
+    if (confirmDelete) {
       // Remove this request from localStorage
       const existingRequests = JSON.parse(localStorage.getItem('assistanceRequests') || '[]');
       const updatedRequests = existingRequests.filter(req => req.id !== requestId);
@@ -142,7 +164,7 @@ const PatientMode = () => {
       // Update state to remove the request
       setUserRequests(userRequests.filter(req => req.id !== requestId));
       
-      alert("Your request has been cancelled.");
+      alert("Your request has been deleted. Thank you for using our platform!");
     }
   };
 
@@ -154,13 +176,6 @@ const PatientMode = () => {
   if (loading) {
     return <div className="loading">Loading...</div>;
   }
-
-  // Get tomorrow's date as the default min date for the date input
-  const getTomorrowDate = () => {
-    const tomorrow = new Date();
-    tomorrow.setDate(tomorrow.getDate() + 1);
-    return tomorrow.toISOString().split('T')[0];
-  };
 
   return (
     <div className="patient-container">
@@ -195,21 +210,25 @@ const PatientMode = () => {
               <div key={request.id} className="request-card your-request">
                 <div className="request-header">
                   <span className="request-category">{request.categoryLabel}</span>
-                  <span className="request-status">Pending</span>
+                  <span className="request-status">Active</span>
                 </div>
                 <div className="request-details">
                   <p><strong>Date:</strong> {request.date}</p>
                   <p><strong>Time:</strong> {request.time}</p>
                   <p><strong>Location:</strong> {request.location}</p>
+                  <p><strong>Contact:</strong> {request.phone || 'No phone provided'}</p>
                   <p className="request-description">{request.description}</p>
                 </div>
                 <div className="request-actions">
                   <button 
-                    className="btn-cancel"
-                    onClick={() => handleCancelRequest(request.id)}
+                    className="btn-delete"
+                    onClick={() => handleDeleteRequest(request.id)}
                   >
-                    Cancel Request
+                    Delete Request
                   </button>
+                </div>
+                <div className="request-info">
+                  <p className="request-note">Only delete this request after a volunteer has contacted you and you no longer need assistance.</p>
                 </div>
               </div>
             ))}
@@ -282,6 +301,20 @@ const PatientMode = () => {
           </div>
           
           <div className="form-group">
+            <label htmlFor="phone">Phone Number for Contact*</label>
+            <input
+              type="tel"
+              id="phone"
+              name="phone"
+              value={formData.phone}
+              onChange={handleChange}
+              placeholder="(123) 456-7890"
+              className={errors.phone ? 'error' : ''}
+            />
+            {errors.phone && <div className="error-message">{errors.phone}</div>}
+          </div>
+          
+          <div className="form-group">
             <label htmlFor="description">Description of Assistance Needed*</label>
             <textarea
               id="description"
@@ -296,7 +329,7 @@ const PatientMode = () => {
           </div>
           
           <div className="form-note">
-            <p>A volunteer will contact you through the email address associated with your account once they accept your request.</p>
+            <p>Volunteers will contact you through the phone number you provide. Delete your request once you've been contacted and no longer need help.</p>
           </div>
           
           <div className="form-actions">
@@ -318,11 +351,11 @@ const PatientMode = () => {
           </div>
           <div className="info-step">
             <div className="step-number">3</div>
-            <p>Once a volunteer accepts, you'll receive their contact information</p>
+            <p>A volunteer will contact you directly through your provided phone number</p>
           </div>
           <div className="info-step">
             <div className="step-number">4</div>
-            <p>Coordinate with your volunteer to receive the assistance you need</p>
+            <p>Once you've received help, delete your request to complete the process</p>
           </div>
         </div>
       </div>
