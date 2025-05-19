@@ -15,7 +15,7 @@ const VolunteerMode = () => {
       time: '10:00 AM',
       location: 'Main Campus Library',
       description: 'Need assistance navigating to the third floor research section and carrying materials.',
-      phone: '(555) 123-4567',
+      phone: '(+962) 123-4567',
       status: 'open'
     },
     {
@@ -27,7 +27,7 @@ const VolunteerMode = () => {
       time: '2:30 PM',
       location: 'Science Building, Room 203',
       description: 'Looking for someone to take notes during Physics lecture. I have hearing impairment and miss some content.',
-      phone: '(555) 987-6543',
+      phone: '(+962) 987-6543',
       status: 'open'
     },
     {
@@ -39,7 +39,7 @@ const VolunteerMode = () => {
       time: '1:00 PM',
       location: 'Student Center',
       description: 'Need help reading through course materials due to visual impairment.',
-      phone: '(555) 456-7890',
+      phone: '(+962) 456-7890',
       status: 'open'
     }
   ]);

@@ -7,7 +7,7 @@ const UserRegistration = () => {
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
-    email: '',
+    // email: '',
     password: '',
     confirmPassword: '',
     phone: '',
@@ -31,14 +31,14 @@ const UserRegistration = () => {
     // Required fields
     if (!formData.firstName.trim()) newErrors.firstName = 'First name is required';
     if (!formData.lastName.trim()) newErrors.lastName = 'Last name is required';
-    if (!formData.email.trim()) newErrors.email = 'Email is required';
+    // if (!formData.email.trim()) newErrors.email = 'Email is required';
     if (!formData.phone?.trim()) newErrors.phone = 'Phone number is required';
     
-    // Email validation
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (formData.email && !emailRegex.test(formData.email)) {
-      newErrors.email = 'Please enter a valid email address';
-    }
+    // // Email validation
+    // const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    // if (formData.email && !emailRegex.test(formData.email)) {
+    //   newErrors.email = 'Please enter a valid email address';
+    // }
     
     // Phone validation (if entered)
     if (formData.phone) {
@@ -81,7 +81,7 @@ const UserRegistration = () => {
         id: Math.random().toString(36).substr(2, 9), // Generate simple ID
         firstName: formData.firstName,
         lastName: formData.lastName,
-        email: formData.email,
+        // email: formData.email,
         phone: formData.phone,
         isLoggedIn: true
       }));
@@ -139,7 +139,7 @@ const UserRegistration = () => {
               </div>
             </div>
             
-            <div className="form-group">
+            {/* <div className="form-group">
               <label htmlFor="email">Email Address*</label>
               <input
                 type="email"
@@ -150,7 +150,7 @@ const UserRegistration = () => {
                 className={errors.email ? 'error' : ''}
               />
               {errors.email && <div className="error-message">{errors.email}</div>}
-            </div>
+            </div> */}
             
             <div className="form-group">
               <label htmlFor="phone">Phone Number*</label>
@@ -160,7 +160,7 @@ const UserRegistration = () => {
                 name="phone"
                 value={formData.phone}
                 onChange={handleChange}
-                placeholder="(123) 456-7890"
+                placeholder="(+962) 456-7890"
                 className={errors.phone ? 'error' : ''}
               />
               {errors.phone && <div className="error-message">{errors.phone}</div>}
@@ -195,7 +195,7 @@ const UserRegistration = () => {
             </div>
           </div>
           
-          <div className="form-group terms-group">
+          {/* <div className="form-group terms-group">
             <div className="checkbox-container">
               <input
                 type="checkbox"
@@ -210,7 +210,7 @@ const UserRegistration = () => {
               </label>
             </div>
             {errors.agreeTerms && <div className="error-message">{errors.agreeTerms}</div>}
-          </div>
+          </div> */}
           
           <div className="form-note">
             <p>After registration, you'll be able to use both volunteer and assistance services.</p>

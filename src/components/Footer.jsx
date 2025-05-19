@@ -55,7 +55,7 @@ const Footer = () => {
               <i className="fa fa-map-marker"></i> University Campus, Building A
             </p>
             <p>
-              <i className="fa fa-phone"></i> +1 (123) 456-7890
+              <i className="fa fa-phone"></i> (+962) 456-7890
             </p>
             <p>
               <i className="fa fa-envelope"></i> support@campushelp.edu
@@ -63,14 +63,14 @@ const Footer = () => {
           </div>
         </div>
 
-        <div className="footer-bottom">
+        {/* <div className="footer-bottom">
           <p>&copy; {currentYear} CampusHelp. All rights reserved.</p>
           <div className="footer-bottom-links">
             <Link to="/privacy">Privacy Policy</Link>
             <Link to="/terms">Terms of Service</Link>
             <Link to="/accessibility">Accessibility</Link>
           </div>
-        </div>
+        </div> */}
       </div>
     </footer>
   );
