@@ -7,7 +7,6 @@ const UserRegistration = () => {
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
-    // email: '',
     password: '',
     confirmPassword: '',
     phone: '',
@@ -16,51 +15,75 @@ const UserRegistration = () => {
   
   const [errors, setErrors] = useState({});
   
-  const handleChange = (e) => {
-    const { name, value, type, checked } = e.target;
+  const handlePhoneChange = (e) => {
+    let value = e.target.value;
+    
+    value = value.replace(/\D/g, '');
+    
+    if (value.startsWith('962')) {
+      if (value.length > 3) {
+        const restOfNumber = value.substring(3);
+        value = '+962 ' + restOfNumber;
+      } else {
+        value = '+962 ';
+      }
+    } 
+    else if (value.startsWith('0') && value.length > 1) {
+      value = '+962 ' + value.substring(1);
+    }
+    else if (value.length > 0 && !value.startsWith('962') && !value.startsWith('+')) {
+      value = '+962 ' + value;
+    }
     
     setFormData({
       ...formData,
-      [name]: type === 'checkbox' ? checked : value
+      phone: value
     });
+  };
+  
+  const handleChange = (e) => {
+    const { name, value, type, checked } = e.target;
+    
+    if (name === 'phone') {
+      handlePhoneChange(e);
+    } else {
+      setFormData({
+        ...formData,
+        [name]: type === 'checkbox' ? checked : value
+      });
+    }
   };
   
   const validateForm = () => {
     const newErrors = {};
     
-    // Required fields
     if (!formData.firstName.trim()) newErrors.firstName = 'First name is required';
     if (!formData.lastName.trim()) newErrors.lastName = 'Last name is required';
-    // if (!formData.email.trim()) newErrors.email = 'Email is required';
     if (!formData.phone?.trim()) newErrors.phone = 'Phone number is required';
     
-    // // Email validation
-    // const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    // if (formData.email && !emailRegex.test(formData.email)) {
-    //   newErrors.email = 'Please enter a valid email address';
-    // }
-    
-    // Phone validation (if entered)
     if (formData.phone) {
-      const phoneRegex = /^\d{10}$/;
-      if (!phoneRegex.test(formData.phone.replace(/\D/g, ''))) {
-        newErrors.phone = 'Please enter a valid 10-digit phone number';
+      const digitsOnly = formData.phone.replace(/\D/g, '');
+      
+      const isValidJordanianNumber = 
+        (digitsOnly.startsWith('962') && digitsOnly.length === 12) ||
+        // Or if user entered a number without country code, it should be 9 digits
+        (!digitsOnly.startsWith('962') && digitsOnly.length === 9);
+      
+      if (!isValidJordanianNumber) {
+        newErrors.phone = 'Please enter a valid Jordanian phone number';
       }
     }
     
-    // Password validation
     if (!formData.password) {
       newErrors.password = 'Password is required';
     } else if (formData.password.length < 8) {
       newErrors.password = 'Password must be at least 8 characters';
     }
     
-    // Confirm password
     if (formData.password !== formData.confirmPassword) {
       newErrors.confirmPassword = 'Passwords do not match';
     }
     
-    // Terms agreement
     if (!formData.agreeTerms) {
       newErrors.agreeTerms = 'You must agree to the terms and conditions';
     }
@@ -73,7 +96,6 @@ const UserRegistration = () => {
     const newErrors = validateForm();
     
     if (Object.keys(newErrors).length === 0) {
-      // Form is valid, submit data
       console.log('Form submitted successfully', formData);
       
       // Save user data to localStorage (in a real app, this would be sent to a backend)
@@ -81,17 +103,13 @@ const UserRegistration = () => {
         id: Math.random().toString(36).substr(2, 9), // Generate simple ID
         firstName: formData.firstName,
         lastName: formData.lastName,
-        // email: formData.email,
         phone: formData.phone,
         isLoggedIn: true
       }));
       
-      // Navigate to the mode selection dashboard
       navigate('/dashboard');
     } else {
-      // Form has errors
       setErrors(newErrors);
-      // Scroll to the first error
       const firstError = document.querySelector('.error-message');
       if (firstError) {
         firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -139,19 +157,6 @@ const UserRegistration = () => {
               </div>
             </div>
             
-            {/* <div className="form-group">
-              <label htmlFor="email">Email Address*</label>
-              <input
-                type="email"
-                id="email"
-                name="email"
-                value={formData.email}
-                onChange={handleChange}
-                className={errors.email ? 'error' : ''}
-              />
-              {errors.email && <div className="error-message">{errors.email}</div>}
-            </div> */}
-            
             <div className="form-group">
               <label htmlFor="phone">Phone Number*</label>
               <input
@@ -160,9 +165,10 @@ const UserRegistration = () => {
                 name="phone"
                 value={formData.phone}
                 onChange={handleChange}
-                placeholder="(+962) 456-7890"
+                placeholder="+962 7X XXX XXXX"
                 className={errors.phone ? 'error' : ''}
               />
+              <small className="form-hint">Enter a valid Jordanian phone number (e.g., +962 7XXXXXXXX)</small>
               {errors.phone && <div className="error-message">{errors.phone}</div>}
             </div>
             
@@ -194,23 +200,6 @@ const UserRegistration = () => {
               </div>
             </div>
           </div>
-          
-          {/* <div className="form-group terms-group">
-            <div className="checkbox-container">
-              <input
-                type="checkbox"
-                id="agreeTerms"
-                name="agreeTerms"
-                checked={formData.agreeTerms}
-                onChange={handleChange}
-                className={errors.agreeTerms ? 'error' : ''}
-              />
-              <label htmlFor="agreeTerms">
-                I agree to the <a href="#" className="terms-link">Terms and Conditions</a> and <a href="#" className="terms-link">Privacy Policy</a>
-              </label>
-            </div>
-            {errors.agreeTerms && <div className="error-message">{errors.agreeTerms}</div>}
-          </div> */}
           
           <div className="form-note">
             <p>After registration, you'll be able to use both volunteer and assistance services.</p>
