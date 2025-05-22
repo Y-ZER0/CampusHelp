@@ -5,7 +5,7 @@ import '../styling/Login.css';
 const Login = () => {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
-    email: '',
+    phone: '',
     password: '',
     rememberMe: false
   });
@@ -13,18 +13,64 @@ const Login = () => {
   const [errors, setErrors] = useState({});
   const [loginError, setLoginError] = useState('');
   
-  const handleChange = (e) => {
-    const { name, value, type, checked } = e.target;
+  const handlePhoneChange = (e) => {
+    let value = e.target.value;
+    
+    // Remove all non-digit characters
+    value = value.replace(/\D/g, '');
+    
+    // Format the phone number with Jordan country code
+    if (value.startsWith('962')) {
+      if (value.length > 3) {
+        const restOfNumber = value.substring(3);
+        value = '+962 ' + restOfNumber;
+      } else {
+        value = '+962 ';
+      }
+    } 
+    else if (value.startsWith('0') && value.length > 1) {
+      value = '+962 ' + value.substring(1);
+    }
+    else if (value.length > 0 && !value.startsWith('962') && !value.startsWith('+')) {
+      value = '+962 ' + value;
+    }
+    
     setFormData({
       ...formData,
-      [name]: type === 'checkbox' ? checked : value
+      phone: value
     });
+  };
+  
+  const handleChange = (e) => {
+    const { name, value, type, checked } = e.target;
+    
+    if (name === 'phone') {
+      handlePhoneChange(e);
+    } else {
+      setFormData({
+        ...formData,
+        [name]: type === 'checkbox' ? checked : value
+      });
+    }
   };
   
   const validateForm = () => {
     const newErrors = {};
     
-    if (!formData.email.trim()) newErrors.email = 'Email is required';
+    if (!formData.phone?.trim()) {
+      newErrors.phone = 'Phone number is required';
+    } else {
+      const digitsOnly = formData.phone.replace(/\D/g, '');
+      
+      const isValidJordanianNumber = 
+        (digitsOnly.startsWith('962') && digitsOnly.length === 12) ||
+        (!digitsOnly.startsWith('962') && digitsOnly.length === 9);
+      
+      if (!isValidJordanianNumber) {
+        newErrors.phone = 'Please enter a valid Jordanian phone number';
+      }
+    }
+    
     if (!formData.password) newErrors.password = 'Password is required';
     
     return newErrors;
@@ -42,7 +88,8 @@ const Login = () => {
         const user = JSON.parse(userData);
         
         // Simple check - in a real app you'd verify password with backend
-        if (user.email === formData.email) {
+        // Change from checking email to checking phone
+        if (user.phone === formData.phone) {
           // Update user as logged in
           user.isLoggedIn = true;
           localStorage.setItem('user', JSON.stringify(user));
@@ -50,10 +97,10 @@ const Login = () => {
           // Force a reload of the page to update the header
           window.location.href = '/dashboard';
         } else {
-          setLoginError('Invalid email or password');
+          setLoginError('Invalid phone number or password');
         }
       } else {
-        setLoginError('No account found with this email. Please register.');
+        setLoginError('No account found with this phone number. Please register.');
       }
     } else {
       setErrors(newErrors);
@@ -76,16 +123,18 @@ const Login = () => {
         
         <form className="login-form" onSubmit={handleSubmit}>
           <div className="form-group">
-            <label htmlFor="email">Email Address</label>
+            <label htmlFor="phone">Phone Number</label>
             <input
-              type="email"
-              id="email"
-              name="email"
-              value={formData.email}
+              type="tel"
+              id="phone"
+              name="phone"
+              value={formData.phone}
               onChange={handleChange}
-              className={errors.email ? 'error' : ''}
+              placeholder="+962 7X XXX XXXX"
+              className={errors.phone ? 'error' : ''}
             />
-            {errors.email && <div className="error-message">{errors.email}</div>}
+            <small className="form-hint">Enter a valid Jordanian phone number (e.g., +962 7XXXXXXXX)</small>
+            {errors.phone && <div className="error-message">{errors.phone}</div>}
           </div>
           
           <div className="form-group">

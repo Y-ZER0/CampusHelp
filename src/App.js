@@ -11,6 +11,7 @@ import Dashboard from './components/Dashboard';
 import VolunteerMode from './components/VolunteerMode';
 import PatientMode from './components/PatientMode';
 import Login from './components/Login';
+import AdminDashboard from './components/AdminDashboard';
 
 // Protected Route component to check authentication
 const ProtectedRoute = ({ children }) => {
@@ -29,6 +30,24 @@ const ProtectedRoute = ({ children }) => {
   }
   
   // If authenticated, render the children components
+  return children;
+};
+
+// Admin Route component to check admin authentication
+const AdminRoute = ({ children }) => {
+  const userData = localStorage.getItem('user');
+  let isAdmin = false;
+  
+  if (userData) {
+    const user = JSON.parse(userData);
+    isAdmin = user.isLoggedIn === true && user.isAdmin === true;
+  }
+  
+  // If not admin, redirect to login
+  if (!isAdmin) {
+    return <Navigate to="/login" replace />;
+  }
+  
   return children;
 };
 
@@ -94,6 +113,16 @@ function App() {
                 <ProtectedRoute>
                   <PatientMode />
                 </ProtectedRoute>
+              } 
+            />
+            
+            {/* Admin route */}
+            <Route 
+              path="/admin" 
+              element={
+                <AdminRoute>
+                  <AdminDashboard />
+                </AdminRoute>
               } 
             />
             

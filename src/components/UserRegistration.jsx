@@ -99,14 +99,20 @@ const UserRegistration = () => {
       console.log('Form submitted successfully', formData);
       
       // Save user data to localStorage (in a real app, this would be sent to a backend)
-      localStorage.setItem('user', JSON.stringify({
+      const userData = {
         id: Math.random().toString(36).substr(2, 9), // Generate simple ID
         firstName: formData.firstName,
         lastName: formData.lastName,
         phone: formData.phone,
         isLoggedIn: true
-      }));
+      };
       
+      localStorage.setItem('user', JSON.stringify(userData));
+      
+      // Dispatch a storage event to notify other components about the auth change
+      window.dispatchEvent(new Event('storage'));
+      
+      // Use navigate to redirect to dashboard
       navigate('/dashboard');
     } else {
       setErrors(newErrors);
@@ -115,6 +121,30 @@ const UserRegistration = () => {
         firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
       }
     }
+  };
+
+  // Admin access function for testing/demo purposes
+  const handleAdminAccess = () => {
+    // Create a demo admin user
+    const adminUser = {
+      id: 'admin123',
+      firstName: 'Admin',
+      lastName: 'User',
+      phone: '+962 787654321',
+      email: 'admin@campushelp.edu',
+      isLoggedIn: true,
+      isAdmin: true,
+      registeredAt: new Date().toISOString()
+    };
+
+    // Store admin user in localStorage
+    localStorage.setItem('user', JSON.stringify(adminUser));
+
+    // Dispatch storage event
+    window.dispatchEvent(new Event('storage'));
+
+    // Redirect to admin dashboard
+    navigate('/admin');
   };
   
   return (
@@ -199,6 +229,19 @@ const UserRegistration = () => {
                 {errors.confirmPassword && <div className="error-message">{errors.confirmPassword}</div>}
               </div>
             </div>
+            
+            <div className="form-group checkbox-group">
+              <input
+                type="checkbox"
+                id="agreeTerms"
+                name="agreeTerms"
+                checked={formData.agreeTerms}
+                onChange={handleChange}
+                className={errors.agreeTerms ? 'error' : ''}
+              />
+              <label htmlFor="agreeTerms">I agree to the terms and conditions</label>
+              {errors.agreeTerms && <div className="error-message">{errors.agreeTerms}</div>}
+            </div>
           </div>
           
           <div className="form-note">
@@ -210,6 +253,50 @@ const UserRegistration = () => {
             <button type="submit" className="btn-primary">Create Account</button>
           </div>
         </form>
+
+        {/* Admin Access Section for Testing */}
+        <div className="admin-access-section" style={{ 
+          marginTop: '30px', 
+          paddingTop: '20px', 
+          borderTop: '2px solid #e0e0e0',
+          textAlign: 'center'
+        }}>
+          <p style={{ fontSize: '0.9rem', color: '#7f8c8d', marginBottom: '15px' }}>
+            <strong>For Testing & Demo Purposes:</strong>
+          </p>
+          <button 
+            type="button"
+            onClick={handleAdminAccess}
+            className="admin-access-button"
+            style={{
+              backgroundColor: '#8e44ad',
+              color: 'white',
+              border: 'none',
+              padding: '12px 24px',
+              borderRadius: '6px',
+              cursor: 'pointer',
+              fontSize: '0.95rem',
+              fontWeight: '600',
+              transition: 'all 0.2s ease',
+              boxShadow: '0 2px 4px rgba(142, 68, 173, 0.3)'
+            }}
+            onMouseOver={(e) => {
+              e.target.style.backgroundColor = '#732d91';
+              e.target.style.transform = 'translateY(-1px)';
+              e.target.style.boxShadow = '0 4px 8px rgba(142, 68, 173, 0.4)';
+            }}
+            onMouseOut={(e) => {
+              e.target.style.backgroundColor = '#8e44ad';
+              e.target.style.transform = 'translateY(0)';
+              e.target.style.boxShadow = '0 2px 4px rgba(142, 68, 173, 0.3)';
+            }}
+          >
+            🔧 Access Admin Panel (Demo)
+          </button>
+          <p style={{ fontSize: '0.8rem', color: '#95a5a6', marginTop: '8px' }}>
+            Skip registration and go directly to admin dashboard
+          </p>
+        </div>
       </div>
     </div>
   );
