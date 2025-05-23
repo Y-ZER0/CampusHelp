@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { Link, Navigate } from 'react-router-dom';
+import { useTranslation } from '../contexts/LanguageContext';
 import '../styling/Dashboard.css';
 
 const Dashboard = () => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const { t } = useTranslation();
 
   useEffect(() => {
     // Check if user is logged in
@@ -21,38 +23,35 @@ const Dashboard = () => {
   }
 
   if (loading) {
-    return <div className="loading">Loading...</div>;
+    return <div className="loading">{t('loading')}</div>;
   }
 
   return (
     <div className="dashboard-container">
       <div className="dashboard-header">
-        <h1>Welcome, {user.firstName}!</h1>
-        <p>Choose how you want to use the platform today</p>
+        <h1>{t('welcomeBack', { name: user.firstName })}</h1>
+        <p>{t('choosePlatform')}</p>
       </div>
 
       <div className="mode-selection">
         <div className="mode-card">
           <div className="mode-icon">🤝</div>
-          <h2>Volunteer Mode</h2>
-          <p>Help students with special needs around campus</p>
+          <h2>{t('volunteerMode')}</h2>
+          <p>{t('helpStudents')}</p>
           <p className="mode-description">
-            View assistance requests from students and offer your help with note-taking,
-            mobility assistance, study support, and more.
+            {t('volunteerDescription')}
           </p>
-          <Link to="/volunteer-mode" className="btn-primary">Enter Volunteer Mode</Link>
+          <Link to="/volunteer-mode" className="btn-primary">{t('enterVolunteerMode')}</Link>
         </div>
 
         <div className="mode-card">
           <div className="mode-icon">🙋</div>
-          <h2>Request Assistance</h2>
-          <p>Get help from volunteers around campus</p>
+          <h2>{t('requestAssistance')}</h2>
+          <p>{t('getHelp')}</p>
           <p className="mode-description">
-            Submit requests for assistance with mobility, note-taking, or other needs.
-            Connect with student volunteers ready to help you
-            whenever you need.
+            {t('requestDescription')}
           </p>
-          <Link to="/patient-mode" className="btn-primary">Request Assistance</Link>
+          <Link to="/patient-mode" className="btn-primary">{t('requestAssistance')}</Link>
         </div>
       </div>
 
@@ -64,7 +63,7 @@ const Dashboard = () => {
             window.location.href = '/';
           }}
         >
-          Log Out
+          {t('logOut')}
         </button>
       </div>
     </div>

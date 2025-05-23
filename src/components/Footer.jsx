@@ -1,8 +1,10 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
+import { useTranslation } from '../contexts/LanguageContext';
 import '../styling/Footer.css';
 
 const Footer = () => {
+  const { t } = useTranslation();
   const currentYear = new Date().getFullYear();
 
   return (
@@ -12,8 +14,7 @@ const Footer = () => {
           <div className="footer-section about">
             <h3>CampusHelp</h3>
             <p>
-              Connecting students with special needs to volunteer helpers on campus.
-              Together, we build a more inclusive educational environment.
+              {t('aboutCampusHelp')}
             </p>
             {/* <div className="social-links">
               <a href="https://facebook.com" target="_blank" rel="noopener noreferrer" aria-label="Facebook">
@@ -29,28 +30,28 @@ const Footer = () => {
           </div>
 
           <div className="footer-section links">
-            <h3>Quick Links</h3>
+            <h3>{t('quickLinks')}</h3>
             <ul>
               <li>
-                <Link to="/">Home</Link>
+                <Link to="/">{t('home')}</Link>
               </li>
               <li>
-                <Link to="/dashboard">Dashboard</Link>
+                <Link to="/dashboard">{t('dashboard')}</Link>
               </li>
               <li>
-                <Link to="/volunteer-mode">Volunteer Mode</Link>
+                <Link to="/volunteer-mode">{t('volunteerMode')}</Link>
               </li>
               <li>
-                <Link to="/patient-mode">Request Assistance</Link>
+                <Link to="/patient-mode">{t('requestAssistance')}</Link>
               </li>
               <li>
-                <Link to="/resources">Resources</Link>
+                <Link to="/resources">{t('resources')}</Link>
               </li>
             </ul>
           </div>
 
           <div className="footer-section contact">
-            <h3>Contact Us</h3>
+            <h3>{t('contactUs')}</h3>
             <p>
               <i className="fa fa-map-marker"></i> University Campus, Building A
             </p>

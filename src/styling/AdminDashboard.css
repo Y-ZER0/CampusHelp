@@ -1,12 +1,11 @@
-/* AdminDashboard.css */
-/* Main container layout */
 .admin-container {
+  position: relative;
+  bottom: 25px;
   display: flex;
   min-height: 100vh;
   background-color: #f5f7fa;
 }
 
-/* Sidebar styles */
 .admin-sidebar {
   width: 250px;
   background-color: #2c3e50;
@@ -73,7 +72,6 @@
   gap: 10px;
 }
 
-/* Main content area */
 .admin-content {
   flex-grow: 1;
   margin-left: 250px;
@@ -117,7 +115,6 @@
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
 }
 
-/* Overview page styles */
 .stats-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
@@ -186,7 +183,6 @@
   transition: width 0.3s ease;
 }
 
-/* Table styles for users and requests */
 .admin-table-container {
   overflow-x: auto;
   margin-bottom: 20px;
@@ -215,7 +211,6 @@
   background-color: #f5f7fa;
 }
 
-/* Form styles */
 .admin-section {
   margin-bottom: 30px;
 }
@@ -288,7 +283,6 @@
   flex-wrap: wrap;
 }
 
-/* Button styles */
 .btn-primary {
   background-color: #3498db;
   color: white;
@@ -358,7 +352,6 @@
   color: #e74c3c;
 }
 
-/* Status indicators */
 select.status-open {
   background-color: #f5f5f5;
   border: 1px solid #ddd;
@@ -383,7 +376,6 @@ select.status-cancelled {
   color: #d32f2f;
 }
 
-/* Responsive styles */
 @media (max-width: 768px) {
   .admin-container {
     flex-direction: column;
@@ -473,7 +465,6 @@ select.status-cancelled {
   }
 }
 
-/* Animation effects */
 @keyframes fadeIn {
   from {
     opacity: 0;
@@ -487,7 +478,6 @@ select.status-cancelled {
   animation: fadeIn 0.3s ease;
 }
 
-/* Dashboard style consistency adjustments */
 .admin-body h2 {
   font-size: 2rem;
   color: #2c3e50;
@@ -498,7 +488,6 @@ select.status-cancelled {
   padding-bottom: 1rem;
 }
 
-/* Status badge style to match design theme */
 .status-badge {
   display: inline-block;
   padding: 5px 10px;
@@ -527,7 +516,6 @@ select.status-cancelled {
   color: #d32f2f;
 }
 
-/* More Dashboard-style adjustments */
 .admin-section {
   border-radius: 12px;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
@@ -542,7 +530,6 @@ select.status-cancelled {
   box-shadow: 0 6px 25px rgba(0, 0, 0, 0.1);
 }
 
-/* Progress bar for potential use */
 .progress-bar {
   height: 8px;
   background-color: #ecf0f1;
@@ -557,7 +544,6 @@ select.status-cancelled {
   transition: width 0.3s ease;
 }
 
-/* Enhancement for empty states */
 .empty-state {
   padding: 40px 20px;
   text-align: center;
@@ -580,7 +566,6 @@ select.status-cancelled {
   margin: 0 auto;
 }
 
-/* Additional UI enhancements */
 .notification-badge {
   background-color: #e74c3c;
   color: white;
@@ -606,7 +591,6 @@ select.status-cancelled {
   color: #7f8c8d;
 }
 
-/* User profile avatar */
 .user-avatar {
   width: 40px;
   height: 40px;
@@ -620,7 +604,6 @@ select.status-cancelled {
   margin-right: 10px;
 }
 
-/* Dashboard cards matching */
 .admin-overview .stat-card {
   border-radius: 12px;
   transition: transform 0.3s ease, box-shadow 0.3s ease;

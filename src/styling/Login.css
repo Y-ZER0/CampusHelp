@@ -104,10 +104,14 @@
   text-decoration: underline;
 }
 
-/* Fixed form actions positioning - Override admin dashboard conflicts */
+/* Enhanced form actions positioning - Multiple centering approaches for maximum compatibility */
 .login-form .form-actions {
   margin-top: 2rem !important;
   text-align: center !important;
+  display: flex !important;
+  justify-content: center !important;
+  align-items: center !important;
+  width: 100% !important;
 }
 
 .login-form .btn-primary {
@@ -120,11 +124,13 @@
   cursor: pointer !important;
   font-size: 1rem !important;
   width: 100% !important;
+  max-width: 100% !important;
   transition: background-color 0.3s !important;
   box-sizing: border-box !important;
   display: block !important;
   text-align: center !important;
   text-decoration: none !important;
+  margin: 0 auto !important; /* Additional centering fallback */
 }
 
 .login-form .btn-primary:hover {

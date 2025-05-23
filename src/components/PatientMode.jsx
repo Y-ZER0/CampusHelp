@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { Link, Navigate } from 'react-router-dom';
+import { useTranslation } from '../contexts/LanguageContext';
 import '../styling/PatientMode.css';
 
 const PatientMode = () => {
+  const { t } = useTranslation();
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [formData, setFormData] = useState({
@@ -19,12 +21,12 @@ const PatientMode = () => {
 
   // Categories for assistance requests
   const categories = [
-    { value: 'mobility', label: 'Mobility Impairment' },
-    { value: 'note_taking', label: 'Note Taking' },
-    { value: 'reading', label: 'Reading Materials' },
-    { value: 'interpretation', label: 'Sign Language Interpretation' },
-    { value: 'tech_assistance', label: 'Technology Assistance' },
-    { value: 'other', label: 'Other Assistance' }
+    { value: 'mobility', label: t('mobilityImpairment') },
+    { value: 'note_taking', label: t('noteTaking') },
+    { value: 'reading', label: t('readingMaterials') },
+    { value: 'interpretation', label: t('signLanguage') },
+    { value: 'tech_assistance', label: t('techAssistance') },
+    { value: 'other', label: t('otherAssistance') }
   ];
 
   useEffect(() => {
@@ -56,30 +58,69 @@ const PatientMode = () => {
     }
   }, [user, requestSubmitted]); // Re-fetch when requests are submitted
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
+  const handlePhoneChange = (e) => {
+    let value = e.target.value;
+    
+    // Remove all non-digit characters
+    value = value.replace(/\D/g, '');
+    
+    // Format the phone number with Jordan country code
+    if (value.startsWith('962')) {
+      if (value.length > 3) {
+        const restOfNumber = value.substring(3);
+        value = '+962 ' + restOfNumber;
+      } else {
+        value = '+962 ';
+      }
+    } 
+    else if (value.startsWith('0') && value.length > 1) {
+      value = '+962 ' + value.substring(1);
+    }
+    else if (value.length > 0 && !value.startsWith('962') && !value.startsWith('+')) {
+      value = '+962 ' + value;
+    }
+    
     setFormData({
       ...formData,
-      [name]: value
+      phone: value
     });
+  };
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    
+    if (name === 'phone') {
+      handlePhoneChange(e);
+    } else {
+      setFormData({
+        ...formData,
+        [name]: value
+      });
+    }
   };
 
   const validateForm = () => {
     const newErrors = {};
     
     // Required fields validation
-    if (!formData.category) newErrors.category = 'Please select a category';
-    if (!formData.date) newErrors.date = 'Date is required';
-    if (!formData.time) newErrors.time = 'Time is required';
-    if (!formData.location?.trim()) newErrors.location = 'Location is required';
-    if (!formData.description?.trim()) newErrors.description = 'Description is required';
-    if (!formData.phone?.trim()) newErrors.phone = 'Phone number is required for contact';
+    if (!formData.category) newErrors.category = t('categoryRequired');
+    if (!formData.date) newErrors.date = t('dateRequired');
+    if (!formData.time) newErrors.time = t('timeRequired');
+    if (!formData.location?.trim()) newErrors.location = t('locationRequired');
+    if (!formData.description?.trim()) newErrors.description = t('descriptionRequired');
     
-    // Phone validation
-    if (formData.phone) {
-      const phoneRegex = /^\d{10}$/;
-      if (!phoneRegex.test(formData.phone.replace(/\D/g, ''))) {
-        newErrors.phone = 'Please enter a valid 10-digit phone number';
+    // Phone validation - Updated to match Jordanian format
+    if (!formData.phone?.trim()) {
+      newErrors.phone = t('phoneRequired');
+    } else {
+      const digitsOnly = formData.phone.replace(/\D/g, '');
+      
+      const isValidJordanianNumber = 
+        (digitsOnly.startsWith('962') && digitsOnly.length === 12) ||
+        (!digitsOnly.startsWith('962') && digitsOnly.length === 9);
+      
+      if (!isValidJordanianNumber) {
+        newErrors.phone = t('validPhone');
       }
     }
     
@@ -90,7 +131,7 @@ const PatientMode = () => {
       today.setHours(0, 0, 0, 0); // Set to beginning of day for comparison
       
       if (selectedDate < today) {
-        newErrors.date = 'Date must be today or in the future';
+        newErrors.date = t('futureDateRequired');
       }
     }
     
@@ -109,7 +150,7 @@ const PatientMode = () => {
         id: Math.random().toString(36).substring(2, 9), // Generate simple ID
         name: `${user.firstName} ${user.lastName}`,
         category: formData.category,
-        categoryLabel: categoryObj ? categoryObj.label : 'Other',
+        categoryLabel: categoryObj ? categoryObj.label : t('otherAssistance'),
         date: formData.date,
         time: formData.time,
         location: formData.location,
@@ -174,19 +215,19 @@ const PatientMode = () => {
   }
 
   if (loading) {
-    return <div className="loading">Loading...</div>;
+    return <div className="loading">{t('loading')}</div>;
   }
 
   return (
     <div className="patient-container">
       <div className="patient-header">
-        <h1>Request Assistance</h1>
-        <p>Submit a request for volunteer support on campus</p>
+        <h1>{t('requestAssistanceTitle')}</h1>
+        <p>{t('submitRequest')}</p>
       </div>
 
       <div className="mode-switcher">
         <Link to="/dashboard" className="btn-secondary">
-          ← Back to Dashboard
+          {t('backToDashboard')}
         </Link>
       </div>
 
@@ -197,26 +238,26 @@ const PatientMode = () => {
               <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
               <polyline points="22 4 12 14.01 9 11.01"></polyline>
             </svg>
-            <span>Your assistance request has been submitted successfully!</span>
+            <span>{t('requestSubmitted')}</span>
           </div>
         </div>
       )}
 
       {userRequests.length > 0 && (
         <div className="your-requests-section">
-          <h2>Your Open Requests</h2>
+          <h2>{t('yourRequests')}</h2>
           <div className="requests-grid">
             {userRequests.map(request => (
               <div key={request.id} className="request-card your-request">
                 <div className="request-header">
                   <span className="request-category">{request.categoryLabel}</span>
-                  <span className="request-status">Active</span>
+                  <span className="request-status">{t('active')}</span>
                 </div>
                 <div className="request-details">
-                  <p><strong>Date:</strong> {request.date}</p>
-                  <p><strong>Time:</strong> {request.time}</p>
-                  <p><strong>Location:</strong> {request.location}</p>
-                  <p><strong>Contact:</strong> {request.phone || 'No phone provided'}</p>
+                  <p><strong>{t('date')}:</strong> {request.date}</p>
+                  <p><strong>{t('time')}:</strong> {request.time}</p>
+                  <p><strong>{t('location')}:</strong> {request.location}</p>
+                  <p><strong>{t('contact')}:</strong> {request.phone || 'No phone provided'}</p>
                   <p className="request-description">{request.description}</p>
                 </div>
                 <div className="request-actions">
@@ -224,11 +265,11 @@ const PatientMode = () => {
                     className="btn-delete"
                     onClick={() => handleDeleteRequest(request.id)}
                   >
-                    Delete Request
+                    {t('deleteRequest')}
                   </button>
                 </div>
                 <div className="request-info">
-                  <p className="request-note">Only delete this request after a volunteer has contacted you and you no longer need assistance.</p>
+                  <p className="request-note">{t('deleteNote')}</p>
                 </div>
               </div>
             ))}
@@ -239,7 +280,7 @@ const PatientMode = () => {
       <div className="request-form-card">
         <form className="request-form" onSubmit={handleSubmit}>
           <div className="form-group">
-            <label htmlFor="category">Type of Assistance Needed*</label>
+            <label htmlFor="category">{t('typeOfAssistance')}*</label>
             <select
               id="category"
               name="category"
@@ -247,7 +288,7 @@ const PatientMode = () => {
               onChange={handleChange}
               className={errors.category ? 'error' : ''}
             >
-              <option value="">Select a category</option>
+              <option value="">{t('selectCategory')}</option>
               {categories.map(category => (
                 <option key={category.value} value={category.value}>
                   {category.label}
@@ -259,7 +300,7 @@ const PatientMode = () => {
           
           <div className="form-row">
             <div className="form-group">
-              <label htmlFor="date">Date*</label>
+              <label htmlFor="date">{t('date')}*</label>
               <input
                 type="date"
                 id="date"
@@ -273,7 +314,7 @@ const PatientMode = () => {
             </div>
             
             <div className="form-group">
-              <label htmlFor="time">Time*</label>
+              <label htmlFor="time">{t('time')}*</label>
               <input
                 type="time"
                 id="time"
@@ -287,7 +328,7 @@ const PatientMode = () => {
           </div>
           
           <div className="form-group">
-            <label htmlFor="location">Location*</label>
+            <label htmlFor="location">{t('location')}*</label>
             <input
               type="text"
               id="location"
@@ -301,27 +342,28 @@ const PatientMode = () => {
           </div>
           
           <div className="form-group">
-            <label htmlFor="phone">Phone Number for Contact*</label>
+            <label htmlFor="phone">{t('phoneContact')}*</label>
             <input
               type="tel"
               id="phone"
               name="phone"
               value={formData.phone}
               onChange={handleChange}
-              placeholder="(123) 456-7890"
+              placeholder="+962 7X XXX XXXX"
               className={errors.phone ? 'error' : ''}
             />
+            <small className="form-hint">{t('phoneHint')}</small>
             {errors.phone && <div className="error-message">{errors.phone}</div>}
           </div>
           
           <div className="form-group">
-            <label htmlFor="description">Description of Assistance Needed*</label>
+            <label htmlFor="description">{t('descriptionNeeded')}*</label>
             <textarea
               id="description"
               name="description"
               value={formData.description}
               onChange={handleChange}
-              placeholder="Please provide details about what kind of help you need"
+              placeholder={t('descriptionPlaceholder')}
               rows="4"
               className={errors.description ? 'error' : ''}
             ></textarea>
@@ -329,33 +371,33 @@ const PatientMode = () => {
           </div>
           
           <div className="form-note">
-            <p>Volunteers will contact you through the phone number you provide. Delete your request once you've been contacted and no longer need help.</p>
+            <p>{t('requestNote')}</p>
           </div>
           
           <div className="form-actions">
-            <button type="submit" className="btn-primary">Submit Request</button>
+            <button type="submit" className="btn-primary">{t('submitRequestButton')}</button>
           </div>
         </form>
       </div>
       
       <div className="request-info-section">
-        <h3>What to Expect</h3>
+        <h3>{t('whatToExpect')}</h3>
         <div className="info-steps">
           <div className="info-step">
             <div className="step-number">1</div>
-            <p>Submit your assistance request with all required details</p>
+            <p>{t('step1')}</p>
           </div>
           <div className="info-step">
             <div className="step-number">2</div>
-            <p>Your request will be visible to all registered volunteers</p>
+            <p>{t('step2')}</p>
           </div>
           <div className="info-step">
             <div className="step-number">3</div>
-            <p>A volunteer will contact you directly through your provided phone number</p>
+            <p>{t('step3')}</p>
           </div>
           <div className="info-step">
             <div className="step-number">4</div>
-            <p>Once you've received help, delete your request to complete the process</p>
+            <p>{t('step4')}</p>
           </div>
         </div>
       </div>

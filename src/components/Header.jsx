@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { useTranslation, LanguageSwitcher } from '../contexts/LanguageContext';
 import '../styling/Header.css';
 
 const Header = () => {
@@ -7,6 +8,7 @@ const Header = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
+  const { t } = useTranslation();
 
   // This effect will run on component mount and whenever the location changes
   // This ensures the header updates when user logs in/out
@@ -63,7 +65,7 @@ const Header = () => {
         <div className="logo">
           <Link to="/">
             <h1>CampusHelp</h1>
-            <span className="tagline">Supporting Students Together</span>
+            <span className="tagline">{t('tagline')}</span>
           </Link>
         </div>
 
@@ -79,22 +81,22 @@ const Header = () => {
               <>
                 <li>
                   <Link to="/dashboard" className={isActive('/dashboard')}>
-                    Dashboard
+                    {t('dashboard')}
                   </Link>
                 </li>
                 <li>
                   <Link to="/volunteer-mode" className={isActive('/volunteer-mode')}>
-                    I Want to Help
+                    {t('wantToHelp')}
                   </Link>
                 </li>
                 <li>
                   <Link to="/patient-mode" className={isActive('/patient-mode')}>
-                    I Need Help
+                    {t('needHelp')}
                   </Link>
                 </li>
                 <li>
                   <button className="logout-btn" onClick={handleLogout}>
-                    Logout
+                    {t('logout')}
                   </button>
                 </li>
               </>
@@ -102,17 +104,18 @@ const Header = () => {
               <>
                 <li>
                   <Link to="/login" className={isActive('/login')}>
-                    Login
+                    {t('login')}
                   </Link>
                 </li>
                 <li>
                   <Link to="/register" className={isActive('/register')}>
-                    Register
+                    {t('register')}
                   </Link>
                 </li>
               </>
             )}
           </ul>
+          <LanguageSwitcher />
         </nav>
       </div>
     </header>

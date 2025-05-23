@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { Link, Navigate } from 'react-router-dom';
+import { useTranslation, LanguageSwitcher } from '../contexts/LanguageContext';
 import '../styling/AdminDashboard.css';
+import '../styling/RTL.css';
+
 
 const AdminDashboard = () => {
   const [user, setUser] = useState(null);
@@ -16,6 +19,8 @@ const AdminDashboard = () => {
     usersByCategory: {},
     requestsByCategory: {}
   });
+  
+  const { t } = useTranslation();
   
   // Admin authentication check
   useEffect(() => {
@@ -88,7 +93,7 @@ const AdminDashboard = () => {
 
   // Delete a user (would require backend confirmation in a real app)
   const handleDeleteUser = (userId) => {
-    if (window.confirm('Are you sure you want to delete this user? This action cannot be undone.')) {
+    if (window.confirm(t('confirmDeleteUser'))) {
       // In a real app, this would be an API call
       // For demo purposes, we're just updating the local state
       const updatedUsers = users.filter(user => user.id !== userId);
@@ -101,7 +106,7 @@ const AdminDashboard = () => {
 
   // Delete an assistance request
   const handleDeleteRequest = (requestId) => {
-    if (window.confirm('Are you sure you want to delete this request? This action cannot be undone.')) {
+    if (window.confirm(t('confirmDeleteRequest'))) {
       // In a real app, this would be an API call
       const existingRequests = JSON.parse(localStorage.getItem('assistanceRequests') || '[]');
       const updatedRequests = existingRequests.filter(req => req.id !== requestId);
@@ -159,7 +164,7 @@ const AdminDashboard = () => {
     
     // Validate form
     if (!newAdminData.firstName || !newAdminData.lastName || !newAdminData.email || !newAdminData.password) {
-      alert('All fields are required');
+      alert(t('allFieldsRequired'));
       return;
     }
     
@@ -182,7 +187,7 @@ const AdminDashboard = () => {
       isAdmin: true
     });
     
-    alert('New admin user created successfully!');
+    alert(t('adminCreatedSuccess'));
   };
 
   // If not logged in or not an admin, redirect to login
@@ -191,7 +196,7 @@ const AdminDashboard = () => {
   }
 
   if (loading) {
-    return <div className="loading">Loading...</div>;
+    return <div className="loading">{t('loading')}</div>;
   }
 
   // Render different content based on active view
@@ -200,32 +205,32 @@ const AdminDashboard = () => {
       case 'overview':
         return (
           <div className="admin-overview">
-            <h2>Platform Overview</h2>
+            <h2>{t('platformOverview')}</h2>
             
             <div className="stats-grid">
               <div className="stat-card">
-                <h3>Total Users</h3>
+                <h3>{t('totalUsers')}</h3>
                 <div className="stat-value">{stats.totalUsers}</div>
               </div>
               
               <div className="stat-card">
-                <h3>Total Requests</h3>
+                <h3>{t('totalRequests')}</h3>
                 <div className="stat-value">{stats.totalRequests}</div>
               </div>
               
               <div className="stat-card">
-                <h3>Active Requests</h3>
+                <h3>{t('activeRequests')}</h3>
                 <div className="stat-value">{stats.activeRequests}</div>
               </div>
               
               <div className="stat-card">
-                <h3>Completed Requests</h3>
+                <h3>{t('completedRequests')}</h3>
                 <div className="stat-value">{stats.completedRequests}</div>
               </div>
             </div>
             
             <div className="chart-container">
-              <h3>Requests by Category</h3>
+              <h3>{t('requestsByCategory')}</h3>
               <div className="chart-data">
                 {Object.entries(stats.requestsByCategory).map(([category, count]) => (
                   <div key={category} className="chart-bar">
@@ -249,23 +254,23 @@ const AdminDashboard = () => {
       case 'users':
         return (
           <div className="admin-users">
-            <h2>User Management</h2>
+            <h2>{t('userManagement')}</h2>
             
             <div className="admin-section">
-              <h3>All Users</h3>
+              <h3>{t('allUsers')}</h3>
               
               {users.length === 0 ? (
-                <p>No users found in the system.</p>
+                <p>{t('noUsersFound')}</p>
               ) : (
                 <div className="admin-table-container">
                   <table className="admin-table">
                     <thead>
                       <tr>
-                        <th>Name</th>
-                        <th>Email</th>
-                        <th>Phone</th>
-                        <th>Role</th>
-                        <th>Actions</th>
+                        <th>{t('name')}</th>
+                        <th>{t('email')}</th>
+                        <th>{t('phoneNumber')}</th>
+                        <th>{t('role')}</th>
+                        <th>{t('actions')}</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -274,13 +279,13 @@ const AdminDashboard = () => {
                           <td>{user.firstName} {user.lastName}</td>
                           <td>{user.email || 'N/A'}</td>
                           <td>{user.phone || 'N/A'}</td>
-                          <td>{user.isAdmin ? 'Admin' : 'User'}</td>
+                          <td>{user.isAdmin ? t('admin') : t('user')}</td>
                           <td>
                             <button 
                               className="btn-small btn-danger"
                               onClick={() => handleDeleteUser(user.id)}
                             >
-                              Delete
+                              {t('delete')}
                             </button>
                           </td>
                         </tr>
@@ -292,12 +297,12 @@ const AdminDashboard = () => {
             </div>
             
             <div className="admin-section">
-              <h3>Add New Admin</h3>
+              <h3>{t('addNewAdmin')}</h3>
               
               <form className="admin-form" onSubmit={handleAddAdmin}>
                 <div className="form-row">
                   <div className="form-group">
-                    <label htmlFor="firstName">First Name</label>
+                    <label htmlFor="firstName">{t('firstName')}</label>
                     <input
                       type="text"
                       id="firstName"
@@ -309,7 +314,7 @@ const AdminDashboard = () => {
                   </div>
                   
                   <div className="form-group">
-                    <label htmlFor="lastName">Last Name</label>
+                    <label htmlFor="lastName">{t('lastName')}</label>
                     <input
                       type="text"
                       id="lastName"
@@ -323,7 +328,7 @@ const AdminDashboard = () => {
                 
                 <div className="form-row">
                   <div className="form-group">
-                    <label htmlFor="email">Email</label>
+                    <label htmlFor="email">{t('email')}</label>
                     <input
                       type="email"
                       id="email"
@@ -335,7 +340,7 @@ const AdminDashboard = () => {
                   </div>
                   
                   <div className="form-group">
-                    <label htmlFor="password">Password</label>
+                    <label htmlFor="password">{t('password')}</label>
                     <input
                       type="password"
                       id="password"
@@ -348,7 +353,7 @@ const AdminDashboard = () => {
                 </div>
                 
                 <div className="form-actions right">
-                  <button type="submit" className="btn-primary">Add Admin User</button>
+                  <button type="submit" className="btn-primary">{t('addAdminUser')}</button>
                 </div>
               </form>
             </div>
@@ -358,22 +363,22 @@ const AdminDashboard = () => {
       case 'requests':
         return (
           <div className="admin-requests">
-            <h2>Assistance Requests</h2>
+            <h2>{t('assistanceRequests')}</h2>
             
             {assistanceRequests.length === 0 ? (
-              <p>No assistance requests found in the system.</p>
+              <p>{t('noRequestsFound')}</p>
             ) : (
               <div className="admin-table-container">
                 <table className="admin-table">
                   <thead>
                     <tr>
-                      <th>ID</th>
-                      <th>Name</th>
-                      <th>Category</th>
-                      <th>Date & Time</th>
-                      <th>Location</th>
-                      <th>Status</th>
-                      <th>Actions</th>
+                      <th>{t('id')}</th>
+                      <th>{t('name')}</th>
+                      <th>{t('category')}</th>
+                      <th>{t('dateTime')}</th>
+                      <th>{t('location')}</th>
+                      <th>{t('status')}</th>
+                      <th>{t('actions')}</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -382,7 +387,7 @@ const AdminDashboard = () => {
                         <td>#{request.id.substring(0, 6)}</td>
                         <td>{request.name}</td>
                         <td>{request.categoryLabel}</td>
-                        <td>{request.date} at {request.time}</td>
+                        <td>{request.date} {t('at')} {request.time}</td>
                         <td>{request.location}</td>
                         <td>
                           <select
@@ -390,26 +395,26 @@ const AdminDashboard = () => {
                             onChange={(e) => handleStatusChange(request.id, e.target.value)}
                             className={`status-${request.status}`}
                           >
-                            <option value="open">Open</option>
-                            <option value="in-progress">In Progress</option>
-                            <option value="completed">Completed</option>
-                            <option value="cancelled">Cancelled</option>
+                            <option value="open">{t('open')}</option>
+                            <option value="in-progress">{t('inProgress')}</option>
+                            <option value="completed">{t('completed')}</option>
+                            <option value="cancelled">{t('cancelled')}</option>
                           </select>
                         </td>
                         <td>
                           <button
                             className="btn-small btn-secondary"
                             onClick={() => {
-                              alert(`Request Description: ${request.description}\nContact: ${request.phone}`);
+                              alert(`${t('requestDescription')}: ${request.description}\n${t('contact')}: ${request.phone}`);
                             }}
                           >
-                            View
+                            {t('view')}
                           </button>
                           <button 
                             className="btn-small btn-danger"
                             onClick={() => handleDeleteRequest(request.id)}
                           >
-                            Delete
+                            {t('delete')}
                           </button>
                         </td>
                       </tr>
@@ -424,14 +429,14 @@ const AdminDashboard = () => {
       case 'settings':
         return (
           <div className="admin-settings">
-            <h2>System Settings</h2>
+            <h2>{t('systemSettings')}</h2>
             
             <div className="admin-section">
-              <h3>Platform Settings</h3>
+              <h3>{t('platformSettings')}</h3>
               
               <form className="admin-form">
                 <div className="form-group">
-                  <label htmlFor="platformName">Platform Name</label>
+                  <label htmlFor="platformName">{t('platformName')}</label>
                   <input
                     type="text"
                     id="platformName"
@@ -440,7 +445,7 @@ const AdminDashboard = () => {
                 </div>
                 
                 <div className="form-group">
-                  <label htmlFor="contactEmail">Support Email</label>
+                  <label htmlFor="contactEmail">{t('supportEmail')}</label>
                   <input
                     type="email"
                     id="contactEmail"
@@ -454,7 +459,7 @@ const AdminDashboard = () => {
                     id="enableRegistration"
                     defaultChecked={true}
                   />
-                  <label htmlFor="enableRegistration">Enable User Registration</label>
+                  <label htmlFor="enableRegistration">{t('enableUserRegistration')}</label>
                 </div>
                 
                 <div className="form-group checkbox-group">
@@ -463,7 +468,7 @@ const AdminDashboard = () => {
                     id="requireApproval"
                     defaultChecked={false}
                   />
-                  <label htmlFor="requireApproval">Require Admin Approval for New Users</label>
+                  <label htmlFor="requireApproval">{t('requireAdminApproval')}</label>
                 </div>
                 
                 <div className="form-group checkbox-group">
@@ -472,50 +477,50 @@ const AdminDashboard = () => {
                     id="enableNotifications"
                     defaultChecked={true}
                   />
-                  <label htmlFor="enableNotifications">Enable Email Notifications</label>
+                  <label htmlFor="enableNotifications">{t('enableEmailNotifications')}</label>
                 </div>
                 
                 <div className="form-actions">
-                  <button type="button" className="btn-primary" onClick={() => alert('Settings saved!')}>
-                    Save Settings
+                  <button type="button" className="btn-primary" onClick={() => alert(t('settingsSaved'))}>
+                    {t('saveSettings')}
                   </button>
                 </div>
               </form>
             </div>
             
             <div className="admin-section">
-              <h3>System Maintenance</h3>
+              <h3>{t('systemMaintenance')}</h3>
               
               <div className="admin-actions">
                 <button 
                   className="btn-secondary"
                   onClick={() => {
-                    if (window.confirm('Are you sure you want to clear ALL completed requests?')) {
+                    if (window.confirm(t('confirmClearCompleted'))) {
                       const updatedRequests = assistanceRequests.filter(req => req.status !== 'completed');
                       localStorage.setItem('assistanceRequests', JSON.stringify(updatedRequests));
                       setAssistanceRequests(updatedRequests);
                       calculateStatistics(users, updatedRequests);
-                      alert('Completed requests have been cleared');
+                      alert(t('completedRequestsCleared'));
                     }
                   }}
                 >
-                  Clear Completed Requests
+                  {t('clearCompletedRequests')}
                 </button>
                 
                 <button 
                   className="btn-danger"
                   onClick={() => {
-                    if (window.confirm('⚠️ WARNING: This will delete ALL data from the system. This action cannot be undone. Are you absolutely sure?')) {
+                    if (window.confirm(t('confirmResetSystem'))) {
                       // Clear all data
                       // Note: In a real application, this would be an API call with proper authentication
                       localStorage.removeItem('assistanceRequests');
                       setAssistanceRequests([]);
                       calculateStatistics(users, []);
-                      alert('All request data has been cleared');
+                      alert(t('systemDataCleared'));
                     }
                   }}
                 >
-                  Reset System Data
+                  {t('resetSystemData')}
                 </button>
               </div>
             </div>
@@ -523,7 +528,7 @@ const AdminDashboard = () => {
         );
         
       default:
-        return <div>Select a section from the sidebar</div>;
+        return <div>{t('selectSection')}</div>;
     }
   };
 
@@ -531,7 +536,7 @@ const AdminDashboard = () => {
     <div className="admin-container">
       <div className="admin-sidebar">
         <div className="admin-logo">
-          <h2>Admin Panel</h2>
+          <h2>{t('adminPanel')}</h2>
         </div>
         
         <div className="admin-menu">
@@ -540,7 +545,7 @@ const AdminDashboard = () => {
             onClick={() => setActiveView('overview')}
           >
             <i className="menu-icon">📊</i>
-            Dashboard
+            {t('dashboard')}
           </button>
           
           <button 
@@ -548,7 +553,7 @@ const AdminDashboard = () => {
             onClick={() => setActiveView('users')}
           >
             <i className="menu-icon">👥</i>
-            Users
+            {t('users')}
           </button>
           
           <button 
@@ -556,7 +561,7 @@ const AdminDashboard = () => {
             onClick={() => setActiveView('requests')}
           >
             <i className="menu-icon">🔔</i>
-            Requests
+            {t('requests')}
           </button>
           
           <button 
@@ -564,13 +569,13 @@ const AdminDashboard = () => {
             onClick={() => setActiveView('settings')}
           >
             <i className="menu-icon">⚙️</i>
-            Settings
+            {t('settings')}
           </button>
         </div>
         
         <div className="admin-footer">
           <Link to="/dashboard" className="btn-secondary btn-small">
-            Return to User Dashboard
+            {t('returnToUserDashboard')}
           </Link>
           
           <button 
@@ -580,7 +585,7 @@ const AdminDashboard = () => {
               window.location.href = '/';
             }}
           >
-            Log Out
+            {t('logout')}
           </button>
         </div>
       </div>
@@ -588,12 +593,15 @@ const AdminDashboard = () => {
       <div className="admin-content">
         <div className="admin-header">
           <div className="admin-breadcrumb">
-            Admin Panel &gt; {activeView.charAt(0).toUpperCase() + activeView.slice(1)}
+            {t('adminPanel')} &gt; {t(activeView)}
           </div>
           
-          <div className="admin-user-info">
-            <span className="admin-username">{user.firstName} {user.lastName}</span>
-            <span className="admin-role">Administrator</span>
+          <div className="admin-header-right">
+            {/* <LanguageSwitcher /> */}
+            <div className="admin-user-info">
+              <span className="admin-username">{user.firstName} {user.lastName}</span>
+              <span className="admin-role">{t('administrator')}</span>
+            </div>
           </div>
         </div>
         

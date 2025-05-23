@@ -1,0 +1,76 @@
+/* RTL Language Support */
+[dir="rtl"] .admin-container {
+  direction: rtl;
+}
+
+[dir="rtl"] .admin-sidebar {
+  left: auto;
+  right: 0;
+  box-shadow: -2px 0 5px rgba(0, 0, 0, 0.1);
+}
+
+[dir="rtl"] .admin-content {
+  margin-left: 0;
+  margin-right: 250px;
+}
+
+[dir="rtl"] .admin-menu button {
+  text-align: right;
+}
+
+[dir="rtl"] .admin-menu button.active {
+  border-left: none;
+  border-right: 4px solid #3498db;
+}
+
+[dir="rtl"] .menu-icon {
+  margin-right: 0;
+  margin-left: 10px;
+}
+
+[dir="rtl"] .admin-header {
+  flex-direction: row-reverse;
+}
+
+[dir="rtl"] .admin-user-info {
+  align-items: flex-start;
+}
+
+[dir="rtl"] .chart-bar {
+  flex-direction: row-reverse;
+}
+
+[dir="rtl"] .chart-value {
+  justify-content: flex-start;
+}
+
+[dir="rtl"] .form-row {
+  flex-direction: row-reverse;
+}
+
+[dir="rtl"] .form-actions.right {
+  justify-content: flex-start;
+}
+
+[dir="rtl"] .admin-table th,
+[dir="rtl"] .admin-table td {
+  text-align: right;
+}
+
+[dir="rtl"] .btn-small {
+  margin-right: 0;
+  margin-left: 5px;
+}
+
+[dir="rtl"] .user-avatar {
+  margin-right: 0;
+  margin-left: 10px;
+}
+
+.admin-container {
+  position: relative;
+  bottom: 25px;
+  display: flex;
+  min-height: 100vh;
+  background-color: #f5f7fa;
+}

@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { useTranslation } from '../contexts/LanguageContext';
 import '../styling/Login.css';
 
 const Login = () => {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const [formData, setFormData] = useState({
     phone: '',
     password: '',
@@ -58,7 +60,7 @@ const Login = () => {
     const newErrors = {};
     
     if (!formData.phone?.trim()) {
-      newErrors.phone = 'Phone number is required';
+      newErrors.phone = t('phoneRequired');
     } else {
       const digitsOnly = formData.phone.replace(/\D/g, '');
       
@@ -67,11 +69,11 @@ const Login = () => {
         (!digitsOnly.startsWith('962') && digitsOnly.length === 9);
       
       if (!isValidJordanianNumber) {
-        newErrors.phone = 'Please enter a valid Jordanian phone number';
+        newErrors.phone = t('validPhone');
       }
     }
     
-    if (!formData.password) newErrors.password = 'Password is required';
+    if (!formData.password) newErrors.password = t('passwordRequired');
     
     return newErrors;
   };
@@ -110,8 +112,8 @@ const Login = () => {
   return (
     <div className="login-container">
       <div className="login-header">
-        <h1>Welcome Back</h1>
-        <p>Log in to access campus assistance services</p>
+        <h1>{t('welcomeBackLogin')}</h1>
+        <p>{t('loginAccess')}</p>
       </div>
       
       <div className="login-card">
@@ -123,7 +125,7 @@ const Login = () => {
         
         <form className="login-form" onSubmit={handleSubmit}>
           <div className="form-group">
-            <label htmlFor="phone">Phone Number</label>
+            <label htmlFor="phone">{t('phoneNumber')}</label>
             <input
               type="tel"
               id="phone"
@@ -133,12 +135,12 @@ const Login = () => {
               placeholder="+962 7X XXX XXXX"
               className={errors.phone ? 'error' : ''}
             />
-            <small className="form-hint">Enter a valid Jordanian phone number (e.g., +962 7XXXXXXXX)</small>
+            <small className="form-hint">{t('phoneHint')}</small>
             {errors.phone && <div className="error-message">{errors.phone}</div>}
           </div>
           
           <div className="form-group">
-            <label htmlFor="password">Password</label>
+            <label htmlFor="password">{t('password')}</label>
             <input
               type="password"
               id="password"
@@ -159,18 +161,18 @@ const Login = () => {
                 checked={formData.rememberMe}
                 onChange={handleChange}
               />
-              <label htmlFor="rememberMe">Remember me</label>
+              <label htmlFor="rememberMe">{t('rememberMe')}</label>
             </div>
             {/* <Link to="/forgot-password" className="forgot-password">Forgot password?</Link> */}
           </div>
           
           <div className="form-actions">
-            <button type="submit" className="btn-primary">Log In</button>
+            <button type="submit" className="btn-primary">{t('loginButton')}</button>
           </div>
         </form>
         
         <div className="login-footer">
-          <p>Don't have an account? <Link to="/register" className="register-link">Register now</Link></p>
+          <p>{t('noAccount')} <Link to="/register" className="register-link">{t('registerNow')}</Link></p>
         </div>
       </div>
     </div>

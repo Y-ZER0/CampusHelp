@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { useTranslation } from '../contexts/LanguageContext';
 import '../styling/Registration.css';
 
 const UserRegistration = () => {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
@@ -57,9 +59,9 @@ const UserRegistration = () => {
   const validateForm = () => {
     const newErrors = {};
     
-    if (!formData.firstName.trim()) newErrors.firstName = 'First name is required';
-    if (!formData.lastName.trim()) newErrors.lastName = 'Last name is required';
-    if (!formData.phone?.trim()) newErrors.phone = 'Phone number is required';
+    if (!formData.firstName.trim()) newErrors.firstName = t('firstNameRequired');
+    if (!formData.lastName.trim()) newErrors.lastName = t('lastNameRequired');
+    if (!formData.phone?.trim()) newErrors.phone = t('phoneRequired');
     
     if (formData.phone) {
       const digitsOnly = formData.phone.replace(/\D/g, '');
@@ -70,22 +72,22 @@ const UserRegistration = () => {
         (!digitsOnly.startsWith('962') && digitsOnly.length === 9);
       
       if (!isValidJordanianNumber) {
-        newErrors.phone = 'Please enter a valid Jordanian phone number';
+        newErrors.phone = t('validPhone');
       }
     }
     
     if (!formData.password) {
-      newErrors.password = 'Password is required';
+      newErrors.password = t('passwordRequired');
     } else if (formData.password.length < 8) {
-      newErrors.password = 'Password must be at least 8 characters';
+      newErrors.password = t('passwordLength');
     }
     
     if (formData.password !== formData.confirmPassword) {
-      newErrors.confirmPassword = 'Passwords do not match';
+      newErrors.confirmPassword = t('passwordMatch');
     }
     
     if (!formData.agreeTerms) {
-      newErrors.agreeTerms = 'You must agree to the terms and conditions';
+      newErrors.agreeTerms = t('agreeTermsRequired');
     }
     
     return newErrors;
@@ -150,18 +152,18 @@ const UserRegistration = () => {
   return (
     <div className="registration-container">
       <div className="registration-header">
-        <h1>User Registration</h1>
-        <p>Create an account to access all campus support services</p>
+        <h1>{t('userRegistration')}</h1>
+        <p>{t('createAccount')}</p>
       </div>
       
       <div className="registration-card">
         <form className="registration-form" onSubmit={handleSubmit}>
           <div className="form-section">
-            <h2>Account Information</h2>
+            <h2>{t('accountInfo')}</h2>
             
             <div className="form-row">
               <div className="form-group">
-                <label htmlFor="firstName">First Name*</label>
+                <label htmlFor="firstName">{t('firstName')}*</label>
                 <input
                   type="text"
                   id="firstName"
@@ -174,7 +176,7 @@ const UserRegistration = () => {
               </div>
               
               <div className="form-group">
-                <label htmlFor="lastName">Last Name*</label>
+                <label htmlFor="lastName">{t('lastName')}*</label>
                 <input
                   type="text"
                   id="lastName"
@@ -188,7 +190,7 @@ const UserRegistration = () => {
             </div>
             
             <div className="form-group">
-              <label htmlFor="phone">Phone Number*</label>
+              <label htmlFor="phone">{t('phoneNumber')}*</label>
               <input
                 type="tel"
                 id="phone"
@@ -198,13 +200,13 @@ const UserRegistration = () => {
                 placeholder="+962 7X XXX XXXX"
                 className={errors.phone ? 'error' : ''}
               />
-              <small className="form-hint">Enter a valid Jordanian phone number (e.g., +962 7XXXXXXXX)</small>
+              <small className="form-hint">{t('phoneHint')}</small>
               {errors.phone && <div className="error-message">{errors.phone}</div>}
             </div>
             
             <div className="form-row">
               <div className="form-group">
-                <label htmlFor="password">Password*</label>
+                <label htmlFor="password">{t('password')}*</label>
                 <input
                   type="password"
                   id="password"
@@ -217,7 +219,7 @@ const UserRegistration = () => {
               </div>
               
               <div className="form-group">
-                <label htmlFor="confirmPassword">Confirm Password*</label>
+                <label htmlFor="confirmPassword">{t('confirmPassword')}*</label>
                 <input
                   type="password"
                   id="confirmPassword"
@@ -239,18 +241,18 @@ const UserRegistration = () => {
                 onChange={handleChange}
                 className={errors.agreeTerms ? 'error' : ''}
               />
-              <label htmlFor="agreeTerms">I agree to the terms and conditions</label>
+              <label htmlFor="agreeTerms">{t('agreeTerms')}</label>
               {errors.agreeTerms && <div className="error-message">{errors.agreeTerms}</div>}
             </div>
           </div>
           
           <div className="form-note">
-            <p>After registration, you'll be able to use both volunteer and assistance services.</p>
+            <p>{t('registrationNote')}</p>
           </div>
           
           <div className="form-actions">
-            <Link to="/login" className="btn-secondary">Go Back</Link>
-            <button type="submit" className="btn-primary">Create Account</button>
+            <Link to="/login" className="btn-secondary">{t('goBack')}</Link>
+            <button type="submit" className="btn-primary">{t('createAccountButton')}</button>
           </div>
         </form>
 
@@ -262,7 +264,7 @@ const UserRegistration = () => {
           textAlign: 'center'
         }}>
           <p style={{ fontSize: '0.9rem', color: '#7f8c8d', marginBottom: '15px' }}>
-            <strong>For Testing & Demo Purposes:</strong>
+            <strong>{t('adminAccess')}</strong>
           </p>
           <button 
             type="button"
@@ -291,10 +293,10 @@ const UserRegistration = () => {
               e.target.style.boxShadow = '0 2px 4px rgba(142, 68, 173, 0.3)';
             }}
           >
-            🔧 Access Admin Panel (Demo)
+            {t('accessAdmin')}
           </button>
           <p style={{ fontSize: '0.8rem', color: '#95a5a6', marginTop: '8px' }}>
-            Skip registration and go directly to admin dashboard
+            {t('skipRegistration')}
           </p>
         </div>
       </div>

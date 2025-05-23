@@ -3,6 +3,9 @@ import React, { useState, useEffect } from 'react';
 import { HashRouter as Router , Route , Routes , Navigate } from 'react-router-dom';
 import './App.css';
 
+// Language Context
+import { LanguageProvider } from './contexts/LanguageContext';
+
 // Components
 import Header from './components/Header';
 import Footer from './components/Footer'; 
@@ -81,63 +84,65 @@ function App() {
   }, []);
 
   return (
-    <Router>
-      <div className="App">
-        <Header />
-        <main className="main-content">
-          <Routes>
-            {/* Public routes */}
-            <Route path="/register" element={<UserRegistration />} />
-            <Route path="/login" element={<Login />} />
-            
-            {/* Protected routes */}
-            <Route 
-              path="/dashboard" 
-              element={
-                <ProtectedRoute>
-                  <Dashboard />
-                </ProtectedRoute>
-              } 
-            />
-            <Route 
-              path="/volunteer-mode" 
-              element={
-                <ProtectedRoute>
-                  <VolunteerMode />
-                </ProtectedRoute>
-              } 
-            />
-            <Route 
-              path="/patient-mode" 
-              element={
-                <ProtectedRoute>
-                  <PatientMode />
-                </ProtectedRoute>
-              } 
-            />
-            
-            {/* Admin route */}
-            <Route 
-              path="/admin" 
-              element={
-                <AdminRoute>
-                  <AdminDashboard />
-                </AdminRoute>
-              } 
-            />
-            
-            {/* Root path redirects to register if not authenticated, dashboard if authenticated */}
-            <Route path="/" element={
-              isAuthenticated ? <Navigate to="/dashboard" replace /> : <Navigate to="/register" replace />
-            } />
-            
-            {/* Redirect unknown routes to home */}
-            <Route path="*" element={<Navigate to="/" replace />} />
-          </Routes>
-        </main>
-        <Footer />
-      </div>
-    </Router>
+    <LanguageProvider>
+      <Router>
+        <div className="App">
+          <Header />
+          <main className="main-content">
+            <Routes>
+              {/* Public routes */}
+              <Route path="/register" element={<UserRegistration />} />
+              <Route path="/login" element={<Login />} />
+              
+              {/* Protected routes */}
+              <Route 
+                path="/dashboard" 
+                element={
+                  <ProtectedRoute>
+                    <Dashboard />
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="/volunteer-mode" 
+                element={
+                  <ProtectedRoute>
+                    <VolunteerMode />
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="/patient-mode" 
+                element={
+                  <ProtectedRoute>
+                    <PatientMode />
+                  </ProtectedRoute>
+                } 
+              />
+              
+              {/* Admin route */}
+              <Route 
+                path="/admin" 
+                element={
+                  <AdminRoute>
+                    <AdminDashboard />
+                  </AdminRoute>
+                } 
+              />
+              
+              {/* Root path redirects to register if not authenticated, dashboard if authenticated */}
+              <Route path="/" element={
+                isAuthenticated ? <Navigate to="/dashboard" replace /> : <Navigate to="/register" replace />
+              } />
+              
+              {/* Redirect unknown routes to home */}
+              <Route path="*" element={<Navigate to="/" replace />} />
+            </Routes>
+          </main>
+          <Footer />
+        </div>
+      </Router>
+    </LanguageProvider>
   );
 }
 
