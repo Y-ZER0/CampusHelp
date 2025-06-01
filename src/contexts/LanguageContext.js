@@ -53,6 +53,7 @@ export const translations = {
     volunteerDescription: "View assistance requests from students and offer your help with note-taking, mobility assistance, study support, and more.",
     enterVolunteerMode: "Enter Volunteer Mode",
     requestAssistance: "Request Assistance",
+    enterRequestMode: "Request Assistance",
     getHelp: "Get help from volunteers around campus",
     requestDescription: "Submit requests for assistance with mobility, note-taking, or other needs. Connect with student volunteers ready to help you whenever you need.",
     logOut: "Log Out",
@@ -67,6 +68,10 @@ export const translations = {
     loginButton: "Log In",
     noAccount: "Don't have an account?",
     registerNow: "Register now",
+    usernamePlaceholder : "Enter your Username",
+    username: "Username",
+    usernameInvalidChars : "Username can only contain letters, numbers, and underscores",
+    passwordPlaceholder : "Enter your Password",
 
     // Registration
     userRegistration: "User Registration",
@@ -195,7 +200,6 @@ export const translations = {
     completed: "Completed",
     cancelled: "Cancelled",
     view: "View",
-    requestDescription: "Request Description",
     systemSettings: "System Settings",
     platformSettings: "Platform Settings",
     platformName: "Platform Name",
@@ -238,6 +242,7 @@ export const translations = {
     helpStudents: "ساعد الطلاب ذوي الاحتياجات الخاصة في الحرم الجامعي",
     volunteerDescription: "اعرض طلبات المساعدة من الطلاب وقدم مساعدتك في تدوين الملاحظات ومساعدة الحركة والدعم الدراسي والمزيد.",
     enterVolunteerMode: "دخول وضع المتطوع",
+    enterRequestMode: "طلب المساعدة",
     requestAssistance: "طلب المساعدة",
     getHelp: "احصل على المساعدة من المتطوعين في الحرم الجامعي",
     requestDescription: "قدم طلبات للحصول على المساعدة في الحركة وتدوين الملاحظات أو الحاجات الأخرى. تواصل مع المتطوعين الطلاب المستعدين لمساعدتك عند الحاجة.",
@@ -253,6 +258,11 @@ export const translations = {
     loginButton: "تسجيل الدخول",
     noAccount: "ليس لديك حساب؟",
     registerNow: "سجل الآن",
+    usernamePlaceholder : "أدخل اسم المستخدم الخاص بك",
+    username: "اسم المستخدم",
+    usernameInvalidChars : "يمكن أن يحتوي اسم المستخدم على أحرف وأرقام وشرطات سفلية فقط",
+    passwordPlaceholder : "أدخل كلمة المرور الخاصة بك",
+
 
     // Registration
     userRegistration: "تسجيل المستخدم",
@@ -381,7 +391,6 @@ export const translations = {
     completed: "مكتمل",
     cancelled: "ملغي",
     view: "عرض",
-    requestDescription: "وصف الطلب",
     systemSettings: "إعدادات النظام",
     platformSettings: "إعدادات المنصة",
     platformName: "اسم المنصة",

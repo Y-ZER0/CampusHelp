@@ -32,26 +32,87 @@ const Header = () => {
     setIsMenuOpen(!isMenuOpen);
   };
 
-  const handleLogout = () => {
-    // Get the current user data
-    const userData = localStorage.getItem('user');
-    
-    if (userData) {
-      const user = JSON.parse(userData);
-      // Update the isLoggedIn property to false instead of removing
-      user.isLoggedIn = false;
-      localStorage.setItem('user', JSON.stringify(user));
+  // UPDATED FUNCTION: Now integrates with the backend API
+  const handleLogout = async () => {
+    try {
+      // Step 1: Call the logout API endpoint to properly log out on the server
+      const response = await fetch('/auth/logout', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          // Include authentication token if you're using JWT tokens
+          // 'Authorization': `Bearer ${localStorage.getItem('token')}`,
+        },
+        credentials: 'include', // Include cookies if using session-based auth
+      });
+
+      // Step 2: Check if the API call was successful
+      if (response.ok) {
+        // API logout successful, now clean up frontend state
+        
+        // Get the current user data from localStorage
+        const userData = localStorage.getItem('user');
+        
+        if (userData) {
+          const user = JSON.parse(userData);
+          // Update the isLoggedIn property to false
+          user.isLoggedIn = false;
+          localStorage.setItem('user', JSON.stringify(user));
+        }
+        
+        // Clear other session data that's no longer needed
+        localStorage.removeItem('userType');
+        localStorage.removeItem('userId');
+        // Uncomment the next line if you're storing JWT tokens
+        // localStorage.removeItem('token');
+        
+        // Update component state to trigger re-render and hide user menu items
+        setUser(null);
+        
+        // Navigate user back to the login page
+        navigate('/login');
+        
+      } else {
+        // Handle API error response - server returned an error status
+        console.error('Logout failed:', response.status, response.statusText);
+        
+        // You might want to show an error message to the user here
+        // For now, we'll still proceed with frontend cleanup
+        // This decision depends on your application's requirements
+        
+        // Still clean up frontend state even if server logout failed
+        const userData = localStorage.getItem('user');
+        if (userData) {
+          const user = JSON.parse(userData);
+          user.isLoggedIn = false;
+          localStorage.setItem('user', JSON.stringify(user));
+        }
+        
+        localStorage.removeItem('userType');
+        localStorage.removeItem('userId');
+        setUser(null);
+        navigate('/login');
+      }
+      
+    } catch (error) {
+      // Handle network errors or other exceptions (like server being down)
+      console.error('Error during logout:', error);
+      
+      // Even if the API call completely fails, we should still log the user out
+      // from the frontend perspective so they don't get stuck in a broken state
+      
+      const userData = localStorage.getItem('user');
+      if (userData) {
+        const user = JSON.parse(userData);
+        user.isLoggedIn = false;
+        localStorage.setItem('user', JSON.stringify(user));
+      }
+      
+      localStorage.removeItem('userType');
+      localStorage.removeItem('userId');
+      setUser(null);
+      navigate('/login');
     }
-    
-    // Clear other session data
-    localStorage.removeItem('userType');
-    localStorage.removeItem('userId');
-    
-    // Update state to trigger re-render
-    setUser(null);
-    
-    // Navigate to login page
-    navigate('/login');
   };
 
   // Function to determine if the current path is active
@@ -95,6 +156,7 @@ const Header = () => {
                   </Link>
                 </li>
                 <li>
+                  {/* This button already calls handleLogout - no changes needed here */}
                   <button className="logout-btn" onClick={handleLogout}>
                     {t('logout')}
                   </button>

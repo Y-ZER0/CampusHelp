@@ -7,56 +7,34 @@ const VolunteerMode = () => {
   const { t } = useTranslation();
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [assistanceRequests, setAssistanceRequests] = useState([
-    {
-      id: '1',
-      name: 'Alex Johnson',
-      category: 'mobility',
-      categoryLabel: t('mobilityImpairment'),
-      date: '2025-05-15',
-      time: '10:00 AM',
-      location: 'Main Campus Library',
-      description: 'Need assistance navigating to the third floor research section and carrying materials.',
-      phone: '(+962) 123-4567',
-      status: 'open'
-    },
-    {
-      id: '2',
-      name: 'Jamie Smith',
-      category: 'note_taking',
-      categoryLabel: t('noteTaking'),
-      date: '2025-05-16',
-      time: '2:30 PM',
-      location: 'Science Building, Room 203',
-      description: 'Looking for someone to take notes during Physics lecture. I have hearing impairment and miss some content.',
-      phone: '(+962) 987-6543',
-      status: 'open'
-    },
-    {
-      id: '3',
-      name: 'Casey Wilson',
-      category: 'reading',
-      categoryLabel: t('readingMaterials'),
-      date: '2025-05-17',
-      time: '1:00 PM',
-      location: 'Student Center',
-      description: 'Need help reading through course materials due to visual impairment.',
-      phone: '(+962) 456-7890',
-      status: 'open'
-    }
-  ]);
+  // Initialize with empty array instead of demo data
+  const [assistanceRequests, setAssistanceRequests] = useState([]);
 
-  // Load any saved assistance requests from localStorage
+  // Load assistance requests from API data or localStorage
   useEffect(() => {
-    const savedRequests = localStorage.getItem('assistanceRequests');
-    if (savedRequests) {
-      setAssistanceRequests(prev => {
-        // Create a map of existing requests by ID to avoid duplicates
-        const existingIds = new Map(prev.map(req => [req.id, true]));
-        // Filter saved requests to only include those not already in state
-        const newRequests = JSON.parse(savedRequests).filter(req => !existingIds.has(req.id));
-        return [...prev, ...newRequests];
-      });
+    // First check for API data stored by Dashboard
+    const apiRequests = localStorage.getItem('apiAssistanceRequests');
+    if (apiRequests) {
+      try {
+        const parsedApiRequests = JSON.parse(apiRequests);
+        setAssistanceRequests(parsedApiRequests);
+        // Clear the API data after using it
+        localStorage.removeItem('apiAssistanceRequests');
+      } catch (error) {
+        console.error('Error parsing API requests:', error);
+      }
+    } else {
+      // Fallback to saved assistance requests from localStorage (user-created requests)
+      const savedRequests = localStorage.getItem('assistanceRequests');
+      if (savedRequests) {
+        setAssistanceRequests(prev => {
+          // Create a map of existing requests by ID to avoid duplicates
+          const existingIds = new Map(prev.map(req => [req.id, true]));
+          // Filter saved requests to only include those not already in state
+          const newRequests = JSON.parse(savedRequests).filter(req => !existingIds.has(req.id));
+          return [...prev, ...newRequests];
+        });
+      }
     }
   }, []);
 
