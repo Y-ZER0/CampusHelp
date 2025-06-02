@@ -20,8 +20,8 @@ const UserRegistration = () => {
   const [errors, setErrors] = useState({});
 
   // Centralized API configuration
-  const API_BASE_URL = "https://hci-proj-backend.onrender.com";
-  
+  // const API_BASE_URL = "https://hci-proj-backend.onrender.com";
+const API_BASE_URL = "http://localhost:8080";  
   // Improved phone number formatting with better logic
   const handlePhoneChange = (e) => {
     let value = e.target.value;
@@ -133,6 +133,7 @@ const UserRegistration = () => {
 
       const response = await fetch(`${API_BASE_URL}/auth/register`, {
         method: 'POST',
+        credentials: 'include',
         headers: {
           'accept': '*/*',
           'Content-Type': 'application/json',

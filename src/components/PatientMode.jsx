@@ -4,7 +4,8 @@ import { useTranslation } from '../contexts/LanguageContext';
 import '../styling/PatientMode.css';
 
 // Define the API base URL - this is crucial for connecting to your backend
-const API_BASE_URL = "https://hci-proj-backend.onrender.com";
+// const API_BASE_URL = "https://hci-proj-backend.onrender.com";
+const API_BASE_URL = "http://localhost:8080";
 
 const PatientMode = () => {
   const { t } = useTranslation();
@@ -201,6 +202,7 @@ const handleSubmit = async (e) => {
       
       const response = await fetch(apiUrl, {
         method: 'POST',
+        credentials: 'include',
         headers: {
           'accept': '*/*',
           'Content-Type': 'application/json',
@@ -367,58 +369,68 @@ const handleSubmit = async (e) => {
     if (confirmDelete) {
       try {
         // Find the request to get its server ID
-        const request = userRequests.find(req => req.id === requestId);
-        const serverIdToDelete = request?.serverId || requestId;
-        
+        const request = userRequests.find(req => req.id === requestId || req.serverId === requestId);
+        const serverIdToDelete = request?.serverId || request?.id || requestId;
+
         // Try to call the backend DELETE endpoint
-        const apiUrl = `${API_BASE_URL}/apis/${serverIdToDelete}`;
+        const apiUrl = `${API_BASE_URL}/apis/${serverIdToDelete}/complete`;
         
         let response = await fetch(apiUrl, {
-          method: 'DELETE',
+          method: 'PATCH',
+          credentials: 'include',
           headers: {
             'accept': '*/*',
             'Content-Type': 'application/json',
           }
         });
-        
-        // If DELETE endpoint doesn't exist, try the complete endpoint as alternative
+
+        // If DELETE endpoint doesn't exist, try the PATCH complete endpoint as alternative
         if (response.status === 404) {
           console.log('DELETE endpoint not found, trying PATCH complete endpoint...');
           response = await fetch(`${API_BASE_URL}/apis/${serverIdToDelete}/complete`, {
             method: 'PATCH',
+            credentials: 'include',
             headers: {
               'accept': '*/*',
               'Content-Type': 'application/json',
             }
           });
         }
-        
+
         // Update local storage regardless of API response (for better UX)
-        const updateLocalStorageAfterDelete = (requestId) => {
+        const updateLocalStorageAfterDelete = (serverId, localId) => {
           // Update assistanceRequests
           const existingRequests = JSON.parse(localStorage.getItem('assistanceRequests') || '[]');
-          const updatedRequests = existingRequests.filter(req => req.id !== requestId && req.serverId !== requestId);
+          const updatedRequests = existingRequests.filter(
+            req => req.id !== localId && req.serverId !== serverId
+          );
           localStorage.setItem('assistanceRequests', JSON.stringify(updatedRequests));
-          
+
           // Update apiAssistanceRequests  
           const existingApiRequests = JSON.parse(localStorage.getItem('apiAssistanceRequests') || '[]');
-          const updatedApiRequests = existingApiRequests.filter(req => req.id !== requestId && req.serverId !== requestId);
+          const updatedApiRequests = existingApiRequests.filter(
+            req => req.id !== localId && req.serverId !== serverId
+          );
           localStorage.setItem('apiAssistanceRequests', JSON.stringify(updatedApiRequests));
-          
+
           // Trigger storage events
           window.dispatchEvent(new Event('storage'));
         };
-        
+
         if (response.ok) {
           // Success - update local state
-          updateLocalStorageAfterDelete(requestId);
-          setUserRequests(userRequests.filter(req => req.id !== requestId));
+          updateLocalStorageAfterDelete(serverIdToDelete, requestId);
+          setUserRequests(userRequests.filter(
+            req => req.id !== requestId && req.serverId !== serverIdToDelete
+          ));
           alert("Your request has been deleted successfully!");
         } else if (response.status === 404) {
           // Endpoint doesn't exist - fall back to local deletion only
           console.warn('Delete endpoint not implemented on backend, updating locally only');
-          updateLocalStorageAfterDelete(requestId);
-          setUserRequests(userRequests.filter(req => req.id !== requestId));
+          updateLocalStorageAfterDelete(serverIdToDelete, requestId);
+          setUserRequests(userRequests.filter(
+            req => req.id !== requestId && req.serverId !== serverIdToDelete
+          ));
           alert("Your request has been removed from your local list. Note: The backend delete endpoint is not yet implemented.");
         } else {
           const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));

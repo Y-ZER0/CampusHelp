@@ -8,7 +8,8 @@ const Login = () => {
   const { t } = useTranslation();
   
   // Centralized API configuration - matches registration component
-  const API_BASE_URL = "https://hci-proj-backend.onrender.com";
+  // const API_BASE_URL = "https://hci-proj-backend.onrender.com";
+  const API_BASE_URL = "http://localhost:8080";
   
   const [formData, setFormData] = useState({
     username: '',
@@ -85,11 +86,11 @@ const Login = () => {
 
       const response = await fetch(`${API_BASE_URL}/auth/login`, {
         method: 'POST',
+        credentials: 'include',
         headers: {
           'accept': '*/*',
           'Content-Type': 'application/json',
         },
-        // credentials: 'include', // Important for session management
         body: JSON.stringify(requestPayload),
         signal: controller.signal
       });

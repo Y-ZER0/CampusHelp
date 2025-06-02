@@ -38,6 +38,7 @@ const Header = () => {
       // Step 1: Call the logout API endpoint to properly log out on the server
       const response = await fetch('/auth/logout', {
         method: 'POST',
+        credentials: 'include',
         headers: {
           'Content-Type': 'application/json',
           // Include authentication token if you're using JWT tokens
