@@ -33,14 +33,43 @@ const PatientMode = () => {
     setLoading(false);
   }, []);
 
-  // Load user's requests from localStorage
+  // Load user's requests from localStorage - FIXED: Better synchronization
   useEffect(() => {
     if (user) {
-      const existingRequests = JSON.parse(localStorage.getItem('assistanceRequests') || '[]');
-      const userOpenRequests = existingRequests.filter(
-        req => req.requestedBy === user.id && req.status === 'open'
-      );
-      setUserRequests(userOpenRequests);
+      const loadUserRequests = () => {
+        // Load from both sources and merge properly
+        let allRequests = [];
+        
+        // Load from regular assistance requests
+        const existingRequests = JSON.parse(localStorage.getItem('assistanceRequests') || '[]');
+        const userRegularRequests = existingRequests.filter(
+          req => (req.requestedBy === user.id || req.requestedBy === user.username) && req.status === 'open'
+        );
+        allRequests = [...userRegularRequests];
+        
+        // Load from API requests cache
+        const apiRequests = JSON.parse(localStorage.getItem('apiAssistanceRequests') || '[]');
+        const userApiRequests = apiRequests.filter(
+          req => (req.requestedBy === user.id || req.requestedBy === user.username) && req.status === 'open'
+        );
+        
+        // Merge without duplicates based on serverId or id
+        const existingIds = new Set(allRequests.map(req => req.serverId || req.id));
+        const newApiRequests = userApiRequests.filter(req => !existingIds.has(req.serverId || req.id));
+        allRequests = [...allRequests, ...newApiRequests];
+        
+        setUserRequests(allRequests);
+      };
+      
+      loadUserRequests();
+      
+      // Listen for storage changes
+      const handleStorageChange = () => {
+        loadUserRequests();
+      };
+      
+      window.addEventListener('storage', handleStorageChange);
+      return () => window.removeEventListener('storage', handleStorageChange);
     }
   }, [user, requestSubmitted]);
 
@@ -110,14 +139,7 @@ const PatientMode = () => {
    */
   const transformFormDataToApiFormat = (formData) => {
     // Since requestedTime is now a string, we pass it as-is to the API
-    // The backend can handle various time formats or we can normalize it here
     let processedTime = formData.requestedTime.trim();
-    
-    // Optional: Convert 12-hour format to 24-hour format for API consistency
-    if (processedTime.toLowerCase().includes('pm') || processedTime.toLowerCase().includes('am')) {
-      // For simplicity, we'll keep the original format and let the backend handle it
-      // You could add conversion logic here if needed
-    }
     
     // Create the API payload matching the expected schema exactly
     return {
@@ -128,130 +150,214 @@ const PatientMode = () => {
     };
   };
 
-  /**
-   * Enhanced handleSubmit function with the simplified API integration
-   */
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  // FIXED: Enhanced storage update function that ensures proper synchronization
+  const updateLocalStorage = (newRequest) => {
+    // Update both storage locations with proper data structure
+    const existingRequests = JSON.parse(localStorage.getItem('assistanceRequests') || '[]');
+    existingRequests.push(newRequest);
+    localStorage.setItem('assistanceRequests', JSON.stringify(existingRequests));
     
-    const newErrors = validateForm();
+    // Also update the API requests cache for immediate volunteer view
+    const existingApiRequests = JSON.parse(localStorage.getItem('apiAssistanceRequests') || '[]');
+    existingApiRequests.push(newRequest);
+    localStorage.setItem('apiAssistanceRequests', JSON.stringify(existingApiRequests));
     
-    if (Object.keys(newErrors).length === 0) {
-      setIsSubmitting(true);
-      
-      try {
-        // Transform the form data to API format
-        const apiRequestData = transformFormDataToApiFormat(formData);
-        
-        // Construct the full API URL
-        const apiUrl = `${API_BASE_URL}/apis/create`;
-        
-        console.log('Sending API request to:', apiUrl);
-        console.log('Request payload:', apiRequestData);
-        
-        const response = await fetch(apiUrl, {
-          method: 'POST',
-          headers: {
-            'accept': '*/*',
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(apiRequestData)
-        });
+    // Trigger multiple storage events to ensure all components are notified
+    window.dispatchEvent(new Event('storage'));
+    window.dispatchEvent(new StorageEvent('storage', {
+      key: 'assistanceRequests',
+      newValue: JSON.stringify(existingRequests)
+    }));
+    window.dispatchEvent(new StorageEvent('storage', {
+      key: 'apiAssistanceRequests', 
+      newValue: JSON.stringify(existingApiRequests)
+    }));
+    
+    // Force a page refresh of volunteer mode if it's open in another tab
+    setTimeout(() => {
+      window.dispatchEvent(new Event('storage'));
+    }, 100);
+  };
 
-        if (response.ok) {
-          const responseData = await response.json();
-          console.log('Success response:', responseData);
-          
-          // Create a local representation of the request for immediate UI feedback
-          const newRequest = {
-            id: Date.now(), // Temporary ID for local storage
-            ...formData,
-            requestedBy: user.id,
-            status: 'open',
-            submittedAt: new Date().toISOString(),
-            // Store the server response ID if available
-            serverId: responseData.id || responseData.requestId
-          };
-          
-          // Update local storage for immediate UI feedback
-          const existingRequests = JSON.parse(localStorage.getItem('assistanceRequests') || '[]');
-          existingRequests.push(newRequest);
-          localStorage.setItem('assistanceRequests', JSON.stringify(existingRequests));
-          
-          // Reset form to initial state
-          setFormData({
-            requestBody: '',
-            location: '',
-            requestedDate: '',
-            requestedTime: '',
-          });
-          
-          setRequestSubmitted(true);
-          
-          // Hide success message after 5 seconds
-          setTimeout(() => {
-            setRequestSubmitted(false);
-          }, 5000);
-          
-        } else {
-          // Enhanced error handling for different HTTP status codes
-          console.error('Request failed with status:', response.status);
-          console.error('Response URL:', response.url);
-          
-          let errorMessage = 'Unknown error occurred';
-          
-          try {
-            const errorData = await response.json();
-            errorMessage = errorData.error || errorData.message || errorMessage;
-            console.error('API Error Response:', errorData);
-          } catch (parseError) {
-            try {
-              const errorText = await response.text();
-              errorMessage = errorText || `HTTP ${response.status}: ${response.statusText}`;
-              console.error('API Error Text:', errorText);
-            } catch (textError) {
-              errorMessage = `HTTP ${response.status}: ${response.statusText}`;
-            }
-          }
-          
-          // Provide specific guidance based on status codes
-          if (response.status === 404) {
-            alert(`API endpoint not found. Please verify that:\n1. Your backend server is running at ${API_BASE_URL}\n2. The endpoint '/apis/create' exists\n3. The server is accessible\n\nError: ${errorMessage}`);
-          } else if (response.status === 400) {
-            alert(`Request validation failed: ${errorMessage}\n\nPlease check that all fields are filled correctly.`);
-          } else if (response.status === 500) {
-            alert(`Server error: ${errorMessage}\n\nPlease try again later or contact support.`);
+  /**
+   * FIXED: Enhanced handleSubmit function with better error handling and data synchronization
+   */
+ // FIXED: Enhanced handleSubmit function with better user identification
+const handleSubmit = async (e) => {
+  e.preventDefault();
+  
+  const newErrors = validateForm();
+  
+  if (Object.keys(newErrors).length === 0) {
+    setIsSubmitting(true);
+    
+    try {
+      const apiRequestData = transformFormDataToApiFormat(formData);
+      const apiUrl = `${API_BASE_URL}/apis/create`;
+      
+      console.log('Sending API request to:', apiUrl);
+      console.log('Request payload:', apiRequestData);
+      console.log('Current user data:', user); // Debug log to see user structure
+      
+      const response = await fetch(apiUrl, {
+        method: 'POST',
+        headers: {
+          'accept': '*/*',
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(apiRequestData)
+      });
+
+      if (response.ok) {
+        const responseData = await response.json();
+        console.log('Success response:', responseData);
+        
+        // FIXED: Enhanced user name determination with multiple fallbacks
+        const getUserDisplayName = (user) => {
+          // Try different combinations of user data
+          if (user.firstName && user.lastName) {
+            return `${user.firstName} ${user.lastName}`.trim();
+          } else if (user.firstName) {
+            return user.firstName;
+          } else if (user.lastName) {
+            return user.lastName;
+          } else if (user.username) {
+            return user.username;
+          } else if (user.email) {
+            // Extract username from email if needed
+            return user.email.split('@')[0];
           } else {
-            alert(`Failed to submit request (${response.status}): ${errorMessage}`);
+            return 'Anonymous User';
           }
-        }
+        };
+
+        // FIXED: Enhanced user ID determination
+        const getUserId = (user) => {
+          return user.id || user._id || user.userId || user.username || user.email || `user-${Date.now()}`;
+        };
+
+        // FIXED: Create a comprehensive local representation with enhanced user identification
+        const newRequest = {
+          // Use API ID if available, fallback to timestamp
+          id: responseData.id || responseData._id || `req-${Date.now()}`,
+          serverId: responseData.id || responseData._id, // Track server ID separately
+          
+          // FIXED: Enhanced user identification with multiple approaches
+          name: getUserDisplayName(user),
+          requestedBy: getUserId(user),
+          
+          // Request details - Map all fields properly
+          category: getCategoryFromDescription(formData.requestBody),
+          categoryLabel: getCategoryLabelFromDescription(formData.requestBody),
+          date: formData.requestedDate,
+          time: formData.requestedTime,
+          location: formData.location,
+          description: formData.requestBody,
+          requestBody: formData.requestBody, // Keep both for compatibility
+          requestedDate: formData.requestedDate, // Keep both for compatibility  
+          requestedTime: formData.requestedTime, // Keep both for compatibility
+          
+          // FIXED: Enhanced contact information with fallbacks
+          phone: user.phone || user.mobile || user.email || 'Contact via platform',
+          
+          // Status and metadata
+          status: 'open',
+          submittedAt: new Date().toISOString(),
+          
+          // FIXED: Complete user info with all possible fields for better identification
+          userInfo: {
+            id: getUserId(user),
+            username: user.username || user.email?.split('@')[0] || 'anonymous',
+            firstName: user.firstName || '',
+            lastName: user.lastName || '',
+            email: user.email || '',
+            phone: user.phone || user.mobile || '',
+            // Add display name for easy access
+            displayName: getUserDisplayName(user),
+            // Add all original user data for debugging
+            originalUserData: { ...user }
+          },
+          
+          // Additional metadata for tracking
+          source: 'patient-form',
+          apiSubmitted: true,
+          
+          // FIXED: Add timestamp for better tracking
+          createdAt: new Date().toISOString(),
+          lastUpdated: new Date().toISOString()
+        };
         
-      } catch (error) {
-        console.error('Network/Exception Error:', error);
+        console.log('Created request object:', newRequest); // Debug log
         
-        // Provide more specific error messages based on error type
-        if (error.name === 'TypeError' && error.message.includes('fetch')) {
-          alert(`Network connection error. This usually means:\n1. Your backend server at ${API_BASE_URL} is not running\n2. There's a network connectivity issue\n3. CORS is blocking the request\n\nError: ${error.message}`);
-        } else if (error.name === 'AbortError') {
-          alert('Request was cancelled. Please try again.');
-        } else {
-          alert(`An unexpected error occurred: ${error.message}`);
-        }
-      } finally {
-        setIsSubmitting(false);
+        // Use the enhanced storage update function
+        updateLocalStorage(newRequest);
+        
+        console.log('Request saved successfully:', newRequest);
+        
+        // Reset form
+        setFormData({
+          requestBody: '',
+          location: '',
+          requestedDate: '',
+          requestedTime: '',
+        });
+        
+        setRequestSubmitted(true);
+        setTimeout(() => setRequestSubmitted(false), 5000);
+        
+      } else {
+        // Enhanced error handling
+        const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+        console.error('API Error Response:', errorData);
+        alert(`Failed to submit request: ${errorData.error || errorData.message || 'Unknown error'}\nStatus: ${response.status}`);
       }
       
-    } else {
-      setErrors(newErrors);
-      const firstError = document.querySelector('.error-message');
-      if (firstError) {
-        firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    } catch (error) {
+      console.error('Error submitting request:', error);
+      if (error.name === 'TypeError' && error.message.includes('fetch')) {
+        alert(`Network error: Unable to connect to the server at ${API_BASE_URL}. Please check that your backend is running.`);
+      } else {
+        alert(`There was an error submitting your request: ${error.message}`);
       }
+    } finally {
+      setIsSubmitting(false);
+    }
+  } else {
+    setErrors(newErrors);
+  }
+};
+
+  // Helper functions for categorizing requests
+  const getCategoryFromDescription = (description) => {
+    if (!description) return 'other';
+    
+    const descLower = description.toLowerCase();
+    if (descLower.includes('mobility') || descLower.includes('wheelchair') || descLower.includes('walking')) {
+      return 'mobility';
+    } else if (descLower.includes('note') || descLower.includes('writing') || descLower.includes('lecture')) {
+      return 'note_taking';
+    } else if (descLower.includes('reading') || descLower.includes('text') || descLower.includes('book')) {
+      return 'reading';
+    }
+    return 'other';
+  };
+
+  const getCategoryLabelFromDescription = (description) => {
+    const category = getCategoryFromDescription(description);
+    switch (category) {
+      case 'mobility':
+        return t('mobilityImpairment') || 'Mobility Assistance';
+      case 'note_taking':
+        return t('noteTaking') || 'Note Taking';
+      case 'reading':
+        return t('readingMaterials') || 'Reading Materials';
+      default:
+        return t('otherAssistance') || 'Other Assistance';
     }
   };
 
   /**
-   * Delete request function that works with your backend API
+   * FIXED: Enhanced delete request function with better API handling
    */
   const handleDeleteRequest = async (requestId) => {
     const confirmDelete = window.confirm(
@@ -260,8 +366,12 @@ const PatientMode = () => {
     
     if (confirmDelete) {
       try {
+        // Find the request to get its server ID
+        const request = userRequests.find(req => req.id === requestId);
+        const serverIdToDelete = request?.serverId || requestId;
+        
         // Try to call the backend DELETE endpoint
-        const apiUrl = `${API_BASE_URL}/apis/${requestId}`;
+        const apiUrl = `${API_BASE_URL}/apis/${serverIdToDelete}`;
         
         let response = await fetch(apiUrl, {
           method: 'DELETE',
@@ -274,7 +384,7 @@ const PatientMode = () => {
         // If DELETE endpoint doesn't exist, try the complete endpoint as alternative
         if (response.status === 404) {
           console.log('DELETE endpoint not found, trying PATCH complete endpoint...');
-          response = await fetch(`${API_BASE_URL}/apis/${requestId}/complete`, {
+          response = await fetch(`${API_BASE_URL}/apis/${serverIdToDelete}/complete`, {
             method: 'PATCH',
             headers: {
               'accept': '*/*',
@@ -283,25 +393,32 @@ const PatientMode = () => {
           });
         }
         
-        if (response.ok) {
-          // Success - update local state
+        // Update local storage regardless of API response (for better UX)
+        const updateLocalStorageAfterDelete = (requestId) => {
+          // Update assistanceRequests
           const existingRequests = JSON.parse(localStorage.getItem('assistanceRequests') || '[]');
-          const updatedRequests = existingRequests.filter(req => req.id !== requestId);
+          const updatedRequests = existingRequests.filter(req => req.id !== requestId && req.serverId !== requestId);
           localStorage.setItem('assistanceRequests', JSON.stringify(updatedRequests));
           
-          setUserRequests(userRequests.filter(req => req.id !== requestId));
+          // Update apiAssistanceRequests  
+          const existingApiRequests = JSON.parse(localStorage.getItem('apiAssistanceRequests') || '[]');
+          const updatedApiRequests = existingApiRequests.filter(req => req.id !== requestId && req.serverId !== requestId);
+          localStorage.setItem('apiAssistanceRequests', JSON.stringify(updatedApiRequests));
           
+          // Trigger storage events
+          window.dispatchEvent(new Event('storage'));
+        };
+        
+        if (response.ok) {
+          // Success - update local state
+          updateLocalStorageAfterDelete(requestId);
+          setUserRequests(userRequests.filter(req => req.id !== requestId));
           alert("Your request has been deleted successfully!");
         } else if (response.status === 404) {
           // Endpoint doesn't exist - fall back to local deletion only
           console.warn('Delete endpoint not implemented on backend, updating locally only');
-          
-          const existingRequests = JSON.parse(localStorage.getItem('assistanceRequests') || '[]');
-          const updatedRequests = existingRequests.filter(req => req.id !== requestId);
-          localStorage.setItem('assistanceRequests', JSON.stringify(updatedRequests));
-          
+          updateLocalStorageAfterDelete(requestId);
           setUserRequests(userRequests.filter(req => req.id !== requestId));
-          
           alert("Your request has been removed from your local list. Note: The backend delete endpoint is not yet implemented.");
         } else {
           const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
@@ -437,7 +554,6 @@ const PatientMode = () => {
             
             <div className="form-group">
               <label htmlFor="requestedTime">{t('time') || 'Time'}*</label>
-              {/* Changed from type="time" to type="text" to accept string input */}
               <input
                 type="text"
                 id="requestedTime"

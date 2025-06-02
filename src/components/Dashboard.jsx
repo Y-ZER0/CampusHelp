@@ -7,158 +7,206 @@ const Dashboard = () => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [isLoadingRequests, setIsLoadingRequests] = useState(false);
-  const [authError, setAuthError] = useState(false); // Track authentication errors
+  const [authError, setAuthError] = useState(false);
   const { t } = useTranslation();
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Function to fetch current user from API
-    const fetchCurrentUser = async () => {
+    // Function to get current user from localStorage (matches login flow)
+    const getCurrentUser = () => {
       try {
-        // First, check if we have user data in localStorage as a fallback
         const localUserData = localStorage.getItem('user');
         
-        // Make API call to get current user information
-        const response = await fetch('/api/currentUser', {
-          method: 'GET',
-          headers: {
-            'accept': 'application/json',
-            'Content-Type': 'application/json',
-            // Include authentication headers if you're using tokens
-            // 'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
-          },
-          // Include credentials if using cookies for authentication
-          credentials: 'include',
-        });
-
-        if (response.ok) {
-          // Successfully got user data from API
-          const apiUserData = await response.json();
-          setUser(apiUserData);
+        if (localUserData) {
+          const userData = JSON.parse(localUserData);
           
-          // Update localStorage with fresh data from server
-          localStorage.setItem('user', JSON.stringify(apiUserData));
-          setAuthError(false);
-        } else if (response.status === 401 || response.status === 403) {
-          // Authentication failed - user is not logged in or session expired
-          console.log('Authentication failed, clearing local data');
-          localStorage.removeItem('user');
-          localStorage.removeItem('authToken'); // Remove token if using token-based auth
-          setAuthError(true);
-        } else {
-          // Other API error - fall back to localStorage if available
-          console.warn('Failed to fetch current user, using localStorage fallback');
-          if (localUserData) {
-            setUser(JSON.parse(localUserData));
+          // Validate that user data contains required fields
+          if (userData.isLoggedIn && userData.username) {
+            setUser(userData);
+            setAuthError(false);
           } else {
+            // Invalid user data structure
+            console.log('Invalid user data structure, clearing localStorage');
+            localStorage.removeItem('user');
             setAuthError(true);
           }
-        }
-      } catch (error) {
-        // Network error or other exception
-        console.error('Error fetching current user:', error);
-        
-        // Fall back to localStorage data if network request fails
-        const localUserData = localStorage.getItem('user');
-        if (localUserData) {
-          console.log('Using localStorage fallback due to network error');
-          setUser(JSON.parse(localUserData));
         } else {
+          // No user data found
           setAuthError(true);
         }
+      } catch (error) {
+        // Error parsing user data
+        console.error('Error parsing user data:', error);
+        localStorage.removeItem('user');
+        setAuthError(true);
       } finally {
         setLoading(false);
       }
     };
 
-    // Call the function when component mounts
-    fetchCurrentUser();
-  }, []); // Empty dependency array means this runs once on mount
+    // Listen for storage changes (useful if user logs out in another tab)
+    const handleStorageChange = () => {
+      getCurrentUser();
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    getCurrentUser();
+
+    // Cleanup event listener
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+    };
+  }, []);
 
   // Function to fetch requests from API and navigate to volunteer mode
   const handleEnterVolunteerMode = async () => {
-    setIsLoadingRequests(true);
+  setIsLoadingRequests(true);
+  
+  try {
+    // Use the same API base URL as the login component
+    const API_BASE_URL = "https://hci-proj-backend.onrender.com";
     
-    try {
-      const response = await fetch('/api/requests', {
-        method: 'GET',
-        headers: {
-          'accept': '*/*',
-          'Content-Type': 'application/json',
-          // Include auth headers if needed
-          // 'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
-        },
-        credentials: 'include', // Include cookies if using cookie-based auth
-      });
+    const response = await fetch(`${API_BASE_URL}/requests`, {
+      method: 'GET',
+      headers: {
+        'accept': '*/*',
+        'Content-Type': 'application/json',
+      },
+    });
 
-      if (response.ok) {
-        const apiRequests = await response.json();
-        
-        // Transform API data to match the expected format in VolunteerMode
-        const transformedRequests = apiRequests.map(request => ({
-          id: request.creatorId.toString(),
-          name: request.creatorName,
-          category: getCategoryFromLocation(request.location), // Helper function to determine category
-          categoryLabel: getCategoryLabel(request.location),
-          date: request.requestedDate,
-          time: formatTime(request.requestedTime),
-          location: request.location,
-          description: request.requestBody,
-          phone: request.creatorName, // You might need to adjust this based on your data structure
-          status: 'open',
-          requestedBy: request.creatorId
-        }));
+    if (response.ok) {
+      const apiRequests = await response.json();
+      console.log('Raw API response:', apiRequests); // Debug log
+      
+      // Transform API data to match the expected format in VolunteerMode
+      const transformedRequests = apiRequests.map((request, index) => ({
+        id: request.id || request._id || `api-${index}`, // Use API ID or fallback
+        name: request.creatorName || 'Anonymous User',
+        category: getCategoryFromDescription(request.requestBody || ''),
+        categoryLabel: getCategoryLabelFromDescription(request.requestBody || ''),
+        date: request.requestedDate || new Date().toISOString().split('T')[0],
+        time: formatTimeString(request.requestedTime), // Handle string time format
+        location: request.location || 'Not specified',
+        description: request.requestBody || 'No description provided',
+        phone: request.creatorContact || request.creatorName || 'Contact via platform',
+        status: 'open',
+        requestedBy: request.creatorId || request.userId || 'unknown'
+      }));
 
-        // Store the fetched requests in localStorage to be used by VolunteerMode
-        localStorage.setItem('apiAssistanceRequests', JSON.stringify(transformedRequests));
-        
-        // Navigate to volunteer mode
-        navigate('/volunteer-mode');
-      } else if (response.status === 401 || response.status === 403) {
-        // Authentication failed while trying to fetch requests
-        console.error('Authentication failed while fetching requests');
-        setAuthError(true);
-      } else {
-        console.error('Failed to fetch requests:', response.statusText);
-        // Still navigate to volunteer mode, it will use default data
-        navigate('/volunteer-mode');
+      // Store the fetched requests in localStorage to be used by VolunteerMode
+      localStorage.setItem('apiAssistanceRequests', JSON.stringify(transformedRequests));
+      
+      console.log(`Fetched and transformed ${transformedRequests.length} requests from API`);
+      console.log('Transformed requests:', transformedRequests); // Debug log
+    } else {
+      console.warn(`Failed to fetch requests from API (${response.status}), using default data`);
+    }
+    
+    // Navigate to volunteer mode regardless of API success/failure
+    navigate('/volunteer-mode');
+    
+  } catch (error) {
+    console.error('Error fetching requests:', error);
+    // Still navigate to volunteer mode, it will use default data
+    navigate('/volunteer-mode');
+  } finally {
+    setIsLoadingRequests(false);
+  }
+};
+
+const getCategoryFromDescription = (description) => {
+  if (!description) return 'other';
+  
+  const descLower = description.toLowerCase();
+  if (descLower.includes('mobility') || descLower.includes('wheelchair') || descLower.includes('walking') || descLower.includes('movement')) {
+    return 'mobility';
+  } else if (descLower.includes('note') || descLower.includes('writing') || descLower.includes('lecture') || descLower.includes('class')) {
+    return 'note_taking';
+  } else if (descLower.includes('reading') || descLower.includes('text') || descLower.includes('book') || descLower.includes('material')) {
+    return 'reading';
+  }
+  return 'other';
+};
+
+const getCategoryLabelFromDescription = (description) => {
+  const category = getCategoryFromDescription(description);
+  switch (category) {
+    case 'mobility':
+      return t('mobilityImpairment') || 'Mobility Assistance';
+    case 'note_taking':
+      return t('noteTaking') || 'Note Taking';
+    case 'reading':
+      return t('readingMaterials') || 'Reading Materials';
+    default:
+      return t('otherAssistance') || 'Other Assistance';
+  }
+};
+
+const formatTimeString = (timeValue) => {
+  if (!timeValue) return '12:00 PM';
+  
+  try {
+    // If it's already a formatted string, return it
+    if (typeof timeValue === 'string') {
+      // Check if it's already in 12-hour format
+      if (timeValue.toLowerCase().includes('am') || timeValue.toLowerCase().includes('pm')) {
+        return timeValue;
       }
-    } catch (error) {
-      console.error('Error fetching requests:', error);
-      // Still navigate to volunteer mode, it will use default data
-      navigate('/volunteer-mode');
-    } finally {
-      setIsLoadingRequests(false);
+      
+      // If it's in 24-hour format (HH:MM or HH:MM:SS), convert to 12-hour
+      const timeMatch = timeValue.match(/^(\d{1,2}):(\d{2})(?::(\d{2}))?$/);
+      if (timeMatch) {
+        const hour = parseInt(timeMatch[1]);
+        const minute = timeMatch[2];
+        const period = hour >= 12 ? 'PM' : 'AM';
+        const displayHour = hour === 0 ? 12 : hour > 12 ? hour - 12 : hour;
+        return `${displayHour}:${minute} ${period}`;
+      }
+      
+      // Return as-is if it doesn't match expected patterns
+      return timeValue;
     }
+    
+    // Handle object format (legacy support)
+    if (typeof timeValue === 'object' && timeValue.hour !== undefined) {
+      const { hour = 0, minute = 0 } = timeValue;
+      const period = hour >= 12 ? 'PM' : 'AM';
+      const displayHour = hour === 0 ? 12 : hour > 12 ? hour - 12 : hour;
+      const displayMinute = minute.toString().padStart(2, '0');
+      return `${displayHour}:${displayMinute} ${period}`;
+    }
+    
+    return timeValue.toString();
+  } catch (error) {
+    console.error('Error formatting time:', error);
+    return '12:00 PM';
+  }
+};
+
+  // Simple logout function that clears localStorage
+  const handleLogout = () => {
+    // Clear all stored user data
+    localStorage.removeItem('user');
+    localStorage.removeItem('authToken');
+    localStorage.removeItem('apiAssistanceRequests');
+    
+    // Dispatch storage event to notify other components
+    window.dispatchEvent(new Event('storage'));
+    
+    // Redirect to home page
+    navigate('/');
   };
 
-  // Enhanced logout function that also calls server-side logout if available
-  const handleLogout = async () => {
-    try {
-      // Optional: Call server-side logout endpoint to invalidate session
-      await fetch('/api/logout', {
-        method: 'POST',
-        credentials: 'include',
-      });
-    } catch (error) {
-      console.log('Server logout failed, proceeding with client-side logout');
-    } finally {
-      // Always clear local data regardless of server response
-      localStorage.removeItem('user');
-      localStorage.removeItem('authToken');
-      localStorage.removeItem('apiAssistanceRequests');
-      window.location.href = '/';
-    }
-  };
-
-  // Helper function to determine category based on location or other criteria
+  // Helper function to determine category based on location
   const getCategoryFromLocation = (location) => {
+    if (!location) return 'other';
+    
     const locationLower = location.toLowerCase();
-    if (locationLower.includes('library') || locationLower.includes('research')) {
+    if (locationLower.includes('library') || locationLower.includes('research') || locationLower.includes('mobility')) {
       return 'mobility';
-    } else if (locationLower.includes('science') || locationLower.includes('lecture')) {
+    } else if (locationLower.includes('science') || locationLower.includes('lecture') || locationLower.includes('note')) {
       return 'note_taking';
-    } else if (locationLower.includes('student center') || locationLower.includes('materials')) {
+    } else if (locationLower.includes('student center') || locationLower.includes('materials') || locationLower.includes('reading')) {
       return 'reading';
     }
     return 'other';
@@ -169,13 +217,13 @@ const Dashboard = () => {
     const category = getCategoryFromLocation(location);
     switch (category) {
       case 'mobility':
-        return t('mobilityImpairment');
+        return t('mobilityImpairment') || 'Mobility Assistance';
       case 'note_taking':
-        return t('noteTaking');
+        return t('noteTaking') || 'Note Taking';
       case 'reading':
-        return t('readingMaterials');
+        return t('readingMaterials') || 'Reading Materials';
       default:
-        return t('otherAssistance');
+        return t('otherAssistance') || 'Other Assistance';
     }
   };
 
@@ -183,12 +231,21 @@ const Dashboard = () => {
   const formatTime = (timeObj) => {
     if (!timeObj) return '12:00 PM';
     
-    const { hour = 0, minute = 0 } = timeObj;
-    const period = hour >= 12 ? 'PM' : 'AM';
-    const displayHour = hour === 0 ? 12 : hour > 12 ? hour - 12 : hour;
-    const displayMinute = minute.toString().padStart(2, '0');
-    
-    return `${displayHour}:${displayMinute} ${period}`;
+    try {
+      if (typeof timeObj === 'string') {
+        // If it's already a formatted string, return it
+        return timeObj;
+      }
+      
+      const { hour = 0, minute = 0 } = timeObj;
+      const period = hour >= 12 ? 'PM' : 'AM';
+      const displayHour = hour === 0 ? 12 : hour > 12 ? hour - 12 : hour;
+      const displayMinute = minute.toString().padStart(2, '0');
+      
+      return `${displayHour}:${displayMinute} ${period}`;
+    } catch (error) {
+      return '12:00 PM';
+    }
   };
 
   // If authentication failed or user is not logged in, redirect to login
@@ -196,43 +253,45 @@ const Dashboard = () => {
     return <Navigate to="/login" />;
   }
 
-  // Show loading state while fetching user data
+  // Show loading state while checking user data
   if (loading) {
-    return <div className="loading">{t('loading')}</div>;
+    return <div className="loading">{t('loading') || 'Loading...'}</div>;
   }
 
   return (
     <div className="dashboard-container">
       <div className="dashboard-header">
-        <h1>{t('welcomeBack', { name: user.firstName })}</h1>
-        <p>{t('choosePlatform')}</p>
+        <h1>{t('welcomeBack', { name: user.firstName || user.username }) || `Welcome back, ${user.firstName || user.username}!`}</h1>
+        <p>{t('choosePlatform') || 'Choose your platform below'}</p>
       </div>
 
       <div className="mode-selection">
         <div className="mode-card">
           <div className="mode-icon">🤝</div>
-          <h2>{t('volunteerMode')}</h2>
-          <p>{t('helpStudents')}</p>
+          <h2>{t('volunteerMode') || 'Volunteer Mode'}</h2>
+          <p>{t('helpStudents') || 'Help students in need'}</p>
           <p className="mode-description">
-            {t('volunteerDescription')}
+            {t('volunteerDescription') || 'Browse and respond to assistance requests from fellow students'}
           </p>
           <button 
             onClick={handleEnterVolunteerMode}
             className="btn-primary"
             disabled={isLoadingRequests}
           >
-            {isLoadingRequests ? t('loading') : t('enterVolunteerMode')}
+            {isLoadingRequests ? (t('loading') || 'Loading...') : (t('enterVolunteerMode') || 'Enter Volunteer Mode')}
           </button>
         </div>
 
         <div className="mode-card">
           <div className="mode-icon">🙋</div>
-          <h2>{t('requestAssistance')}</h2>
-          <p>{t('getHelp')}</p>
+          <h2>{t('requestAssistance') || 'Request Assistance'}</h2>
+          <p>{t('getHelp') || 'Get help from volunteers'}</p>
           <p className="mode-description">
-            {t('requestDescription')}
+            {t('requestDescription') || 'Submit a request for assistance and connect with helpful volunteers'}
           </p>
-          <Link to="/patient-mode" className="btn-primary">{t('enterRequestMode')}</Link>
+          <Link to="/patient-mode" className="btn-primary">
+            {t('enterRequestMode') || 'Enter Request Mode'}
+          </Link>
         </div>
       </div>
 
@@ -241,7 +300,7 @@ const Dashboard = () => {
           className="btn-secondary" 
           onClick={handleLogout}
         >
-          {t('logOut')}
+          {t('logOut') || 'Log Out'}
         </button>
       </div>
     </div>
