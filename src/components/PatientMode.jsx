@@ -543,6 +543,34 @@ const handleSubmit = async (e) => {
               />
               {errors.requestedTime && <div className="error-message">{errors.requestedTime}</div>}
             </div>
+
+            <div className="form-group">
+            <label htmlFor="imageUpload">{t('Upload Image')}</label>
+            <input
+              type="file"
+              id="imageUpload"
+              name="imageUpload"
+              accept="image/*"
+              onChange={(e) => {
+                // Only allow one image for now
+                const file = e.target.files[0];
+                setFormData({
+                  ...formData,
+                  image: file
+                });
+              }}
+              disabled={isSubmitting}
+            />
+            {formData.image && (
+              <div className="image-preview">
+                <img
+                  src={URL.createObjectURL(formData.image)}
+                  alt="Preview"
+                  style={{ maxWidth: '150px', marginTop: '8px' }}
+                />
+              </div>
+            )}
+          </div>
           </div>
           
           <div className="form-note">
