@@ -529,7 +529,7 @@ const handleSubmit = async (e) => {
                 name="requestedTime"
                 value={formData.requestedTime}
                 onChange={handleChange}
-                placeholder="e.g., 2:30 PM, 14:30, or 2:30pm"
+                placeholder="e.g., 13:00:00 , 01:00:03"
                 className={errors.requestedTime ? 'error' : ''}
                 disabled={isSubmitting}
               />
