@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from '../contexts/LanguageContext';
 import '../styling/Login.css';
@@ -19,6 +19,7 @@ const Login = () => {
   
   const [errors, setErrors] = useState({});
   const [isLoading, setIsLoading] = useState(false);
+  const [userRequests, setUserRequests] = useState([]);
   
 
   
@@ -244,6 +245,43 @@ const Login = () => {
       setIsLoading(false);
     }
   };
+  
+  // Fetch user requests - this could be moved to a different component or context
+  const fetchUserRequests = async () => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/apis/yourRequests`, {
+        method: 'GET',
+        credentials: 'include',
+        headers: {
+          'accept': 'application/json',
+          'Content-Type': 'application/json',
+        },
+      });
+      if (response.ok) {
+        const backendRequests = await response.json();
+        // Map each request to ensure both id and serverId are set to the real DB id
+        const mappedRequests = backendRequests.map(req => ({
+          ...req,
+          id: req.id, // real DB id
+          serverId: req.id, // real DB id
+        }));
+        setUserRequests(mappedRequests);
+      } else {
+        // fallback to localStorage if API fails
+        const existingRequests = JSON.parse(localStorage.getItem('assistanceRequests') || '[]');
+        setUserRequests(existingRequests);
+      }
+    } catch (error) {
+      // fallback to localStorage if fetch fails
+      const existingRequests = JSON.parse(localStorage.getItem('assistanceRequests') || '[]');
+      setUserRequests(existingRequests);
+    }
+  };
+  
+  useEffect(() => {
+    // Optionally, fetch user requests on component mount
+    // fetchUserRequests();
+  }, []);
   
   return (
     <div className="login-container">

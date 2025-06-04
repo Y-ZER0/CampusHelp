@@ -3,6 +3,9 @@ import { Link, Navigate } from 'react-router-dom';
 import { useTranslation } from '../contexts/LanguageContext';
 import '../styling/VolunteerMode.css';
 
+
+  // const API_BASE_URL = "https://hci-proj-backend.onrender.com";
+
 const API_BASE_URL = "http://localhost:8080"; // Or your backend URL
 
 const VolunteerMode = () => {
@@ -28,20 +31,25 @@ const VolunteerMode = () => {
           console.log('API returned:', apiRequests);
           // Optionally transform the API data to match your frontend format
           const transformedRequests = apiRequests.map((request, index) => ({
-            id: request.id || request._id || `api-${index}`,
-            name: request.creatorName || 'Anonymous User',
+            id: request.id,
+            name: request.creatorName || 
+                  (request.user?.firstName || '') + ' ' + (request.user?.lastName || '') || 
+                  request.user?.username || 
+                  request.user?.email?.split('@')[0] || 
+                  'Anonymous User',
             category: request.category || 'general',
             categoryLabel: request.categoryLabel || 'General Assistance',
             date: request.requestedDate || new Date().toISOString().split('T')[0],
             time: request.requestedTime,
             location: request.location || 'Not specified',
             description: request.requestBody || 'No description provided',
-            phone: request.creatorContact || '',
+            phone: request.user.phoneNumber || request.user?.mobile || 'Contact via platform',
             status: request.status || 'open',
             requestedBy: request.creatorId || request.userId || 'unknown',
-            userInfo: request.userInfo || {},
+            userInfo: request.user || {},
           }));
           setAssistanceRequests(transformedRequests);
+          console.log('Transformed Requests:', transformedRequests);
           // Optionally update localStorage for offline/other tab sync
           localStorage.setItem('apiAssistanceRequests', JSON.stringify(transformedRequests));
         } else {
@@ -106,56 +114,10 @@ const VolunteerMode = () => {
             {openRequests.map(request => {
               // FIXED: Enhanced getUserName function with comprehensive fallback logic
               const getUserName = (request) => {
-                console.log('Getting user name for request:', request); // Debug log
-                
-                // Priority 1: Use the displayName if available (from enhanced PatientMode)
-                if (request.userInfo?.displayName && request.userInfo.displayName !== 'Anonymous User') {
-                  return request.userInfo.displayName;
-                }
-                
-                // Priority 2: Construct name from firstName and lastName
-                if (request.userInfo?.firstName) {
-                  const lastName = request.userInfo.lastName ? ` ${request.userInfo.lastName}` : '';
-                  const fullName = `${request.userInfo.firstName}${lastName}`.trim();
-                  if (fullName && fullName !== 'Anonymous User') {
-                    return fullName;
-                  }
-                }
-                
-                // Priority 3: Use the pre-constructed name field
-                if (request.name && request.name !== 'Anonymous User' && request.name.trim()) {
-                  return request.name;
-                }
-                
-                // Priority 4: Use username from userInfo
-                if (request.userInfo?.username && request.userInfo.username !== 'anonymous') {
-                  return request.userInfo.username;
-                }
-                
-                // Priority 5: Use requestedBy if it looks like a username (not an ID)
-                if (request.requestedBy && 
-                    typeof request.requestedBy === 'string' && 
-                    !request.requestedBy.startsWith('user-') && 
-                    !request.requestedBy.includes('@') &&
-                    request.requestedBy.length > 2) {
-                  return request.requestedBy;
-                }
-                
-                // Priority 6: Extract username from email
-                if (request.userInfo?.email) {
-                  const emailUsername = request.userInfo.email.split('@')[0];
-                  if (emailUsername && emailUsername.length > 2) {
-                    return emailUsername;
-                  }
-                }
-                
-                // Priority 7: Try to get any meaningful identifier
-                if (request.userInfo?.id && typeof request.userInfo.id === 'string' && 
-                    !request.userInfo.id.startsWith('user-') && request.userInfo.id.length > 2) {
-                  return request.userInfo.id;
-                }
-                
-                // Final fallback
+                if (request.creatorName && request.creatorName.trim() !== '') return request.creatorName;
+                if (request.userInfo?.firstName || request.userInfo?.lastName)
+                  return `${request.userInfo.firstName || ''} ${request.userInfo.lastName || ''}`.trim();
+                if (request.userInfo?.username) return request.userInfo.username;
                 return 'Anonymous User';
               };
 
@@ -213,7 +175,7 @@ const VolunteerMode = () => {
                       <span className="request-own-tag">{t('yourRequest') || 'Your Request'}</span>
                     )}
                   </div>
-                  <h3>{userName}</h3>
+                  <h3>{request.name}</h3>
                   <div className="request-details">
                     <p><strong>{t('date') || 'Date'}:</strong> {request.date || request.requestedDate || 'Not specified'}</p>
                     <p><strong>{t('time') || 'Time'}:</strong> {request.time || request.requestedTime || 'Not specified'}</p>
@@ -223,9 +185,9 @@ const VolunteerMode = () => {
                     </p>
                     {!isOwn ? (
                       <p className="request-contact">
-                        <strong>{t('contact') || 'Contact'}:</strong> 
-                        <a href={`tel:${request.phone || request.userInfo?.phone || ''}`}>
-                          {request.phone || request.userInfo?.phone || request.userInfo?.email || 'Contact via platform'}
+                        <strong>{t('contact') || 'Contact'}:</strong>
+                        <a href={`tel:${request.phone}`}>
+                          {request.phone || request.phoneNumber}
                         </a>
                       </p>
                     ) : (

@@ -37,38 +37,43 @@ const PatientMode = () => {
   // Load user's requests from localStorage - FIXED: Better synchronization
   useEffect(() => {
     if (user) {
-      const loadUserRequests = () => {
-        // Load from both sources and merge properly
-        let allRequests = [];
-        
-        // Load from regular assistance requests
-        const existingRequests = JSON.parse(localStorage.getItem('assistanceRequests') || '[]');
-        const userRegularRequests = existingRequests.filter(
-          req => (req.requestedBy === user.id || req.requestedBy === user.username) && req.status === 'open'
-        );
-        allRequests = [...userRegularRequests];
-        
-        // Load from API requests cache
-        const apiRequests = JSON.parse(localStorage.getItem('apiAssistanceRequests') || '[]');
-        const userApiRequests = apiRequests.filter(
-          req => (req.requestedBy === user.id || req.requestedBy === user.username) && req.status === 'open'
-        );
-        
-        // Merge without duplicates based on serverId or id
-        const existingIds = new Set(allRequests.map(req => req.serverId || req.id));
-        const newApiRequests = userApiRequests.filter(req => !existingIds.has(req.serverId || req.id));
-        allRequests = [...allRequests, ...newApiRequests];
-        
-        setUserRequests(allRequests);
+      const fetchUserRequests = async () => {
+        try {
+          const response = await fetch(`${API_BASE_URL}/apis/yourRequests`, {
+            method: 'GET',
+            credentials: 'include',
+            headers: {
+              'accept': 'application/json',
+              'Content-Type': 'application/json',
+            },
+          });
+          if (response.ok) {
+            const backendRequests = await response.json();
+            // Map each request to ensure both id and serverId are set to the real DB id
+            const mappedRequests = backendRequests.map(req => ({
+              ...req,
+              id: req.id, // real DB id
+              serverId: req.id, // real DB id
+            }));
+            setUserRequests(mappedRequests);
+          } else {
+            // fallback to localStorage if API fails
+            const existingRequests = JSON.parse(localStorage.getItem('assistanceRequests') || '[]');
+            setUserRequests(existingRequests);
+          }
+        } catch (error) {
+          // fallback to localStorage if fetch fails
+          const existingRequests = JSON.parse(localStorage.getItem('assistanceRequests') || '[]');
+          setUserRequests(existingRequests);
+        }
       };
-      
-      loadUserRequests();
-      
-      // Listen for storage changes
+
+      fetchUserRequests();
+
+      // Optionally, keep your storage event listener if you want local sync
       const handleStorageChange = () => {
-        loadUserRequests();
+        fetchUserRequests();
       };
-      
       window.addEventListener('storage', handleStorageChange);
       return () => window.removeEventListener('storage', handleStorageChange);
     }
@@ -91,7 +96,7 @@ const PatientMode = () => {
       /^([01]?[0-9]|2[0-3]):[0-5][0-9]$/, // 24-hour format HH:MM
       /^([01]?[0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9]$/, // 24-hour format HH:MM:SS
       /^(1[0-2]|0?[1-9]):[0-5][0-9]\s?(AM|PM|am|pm)$/, // 12-hour format with AM/PM
-      /^(1[0-2]|0?[1-9]):[0-5][0-9]:[0-5][0-9]\s?(AM|PM|am|pm)$/ // 12-hour format with seconds
+      /^(1[0-2]|0?[1-9]):[0-5][0-9]:[0-5][0-5]\s?(AM|PM|am|pm)$/ // 12-hour format with seconds
     ];
     
     return timePatterns.some(pattern => pattern.test(timeString.trim()));
@@ -240,7 +245,6 @@ const handleSubmit = async (e) => {
 
         // FIXED: Create a comprehensive local representation with enhanced user identification
         const newRequest = {
-          // Use API ID if available, fallback to timestamp
           id: responseData.id || responseData._id || `req-${Date.now()}`,
           serverId: responseData.id || responseData._id, // Track server ID separately
           
@@ -368,11 +372,15 @@ const handleSubmit = async (e) => {
 
     if (confirmDelete) {
       try {
-        // Find the request to get its server ID (the real DB id)
-        const request = userRequests.find(req => req.id === requestId || req.serverId === requestId);
-        const backendId = request?.serverId || request?.id || requestId;
+        const request = userRequests.find(req => req.serverId === requestId);
+        const backendId = request?.serverId;
 
-        // Call the backend PATCH endpoint with the real DB id
+        // Only allow deletion if backendId is a number (real DB id)
+        if (!backendId || isNaN(Number(backendId))) {
+          alert("This request cannot be deleted from the backend (missing real database ID).");
+          return;
+        }
+
         const apiUrl = `${API_BASE_URL}/apis/${backendId}/complete`;
 
         const response = await fetch(apiUrl, {
@@ -384,29 +392,13 @@ const handleSubmit = async (e) => {
           }
         });
 
-        // Update local storage and UI
         if (response.ok) {
-          // Remove from local storage by backendId
-          const updateLocalStorageAfterDelete = (backendId) => {
-            const filterFn = req => req.id !== backendId && req.serverId !== backendId;
-            localStorage.setItem('assistanceRequests',
-              JSON.stringify(JSON.parse(localStorage.getItem('assistanceRequests') || '[]').filter(filterFn))
-            );
-            localStorage.setItem('apiAssistanceRequests',
-              JSON.stringify(JSON.parse(localStorage.getItem('apiAssistanceRequests') || '[]').filter(filterFn))
-            );
-            window.dispatchEvent(new Event('storage'));
-          };
-
-          updateLocalStorageAfterDelete(backendId);
-          setUserRequests(userRequests.filter(req => req.id !== backendId && req.serverId !== backendId));
+          setUserRequests(userRequests.filter(req => req.serverId !== backendId));
           alert("Your request has been deleted successfully!");
         } else {
-          const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
-          alert(`Failed to delete request: ${errorData.error || 'Unknown error'}\nStatus: ${response.status}`);
+          alert("Failed to delete request.");
         }
       } catch (error) {
-        console.error('Error deleting request:', error);
         alert(`There was an error deleting your request: ${error.message}`);
       }
     }
@@ -463,11 +455,11 @@ const handleSubmit = async (e) => {
                   <p className="request-description">{request.requestBody}</p>
                 </div>
                 <div className="request-actions">
-                  <button 
+                  <button
                     className="btn-delete"
-                    onClick={() => handleDeleteRequest(request.id)}
+                    onClick={() => handleDeleteRequest(request.serverId)}
                   >
-                    {t('deleteRequest') || 'Delete Request'}
+                    Delete
                   </button>
                 </div>
                 <div className="request-info">

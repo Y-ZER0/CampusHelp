@@ -64,6 +64,8 @@ const Dashboard = () => {
   
   try {
     // Use the same API base URL as the login component
+      // const API_BASE_URL = "https://hci-proj-backend.onrender.com";
+
     const API_BASE_URL = "http://localhost:8080";    
     const response = await fetch(`${API_BASE_URL}/requests`, {
       method: 'GET',
