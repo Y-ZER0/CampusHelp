@@ -8,8 +8,8 @@ const Login = () => {
   const { t } = useTranslation();
   
   // Centralized API configuration - matches registration component
-  // const API_BASE_URL = "https://hci-proj-backend.onrender.com";
-  const API_BASE_URL = "http://localhost:8080";
+  const API_BASE_URL = "https://hci-proj-backend.onrender.com";
+  // const API_BASE_URL = "http://localhost:8080";
   
   const [formData, setFormData] = useState({
     username: '',
