@@ -4,8 +4,8 @@ import { useTranslation } from '../contexts/LanguageContext';
 import '../styling/PatientMode.css';
 
 // Define the API base URL - this is crucial for connecting to your backend
-// const API_BASE_URL = "https://hci-proj-backend.onrender.com";
-const API_BASE_URL = "http://localhost:8080";
+const API_BASE_URL = "https://hci-proj-backend.onrender.com";
+// const API_BASE_URL = "http://localhost:8080";
 
 const PatientMode = () => {
   const { t } = useTranslation();

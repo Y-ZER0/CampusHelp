@@ -4,9 +4,9 @@ import { useTranslation } from '../contexts/LanguageContext';
 import '../styling/VolunteerMode.css';
 
 
-  // const API_BASE_URL = "https://hci-proj-backend.onrender.com";
+  const API_BASE_URL = "https://hci-proj-backend.onrender.com";
 
-const API_BASE_URL = "http://localhost:8080"; // Or your backend URL
+// const API_BASE_URL = "http://localhost:8080"; // Or your backend URL
 
 const VolunteerMode = () => {
   const { t } = useTranslation();
