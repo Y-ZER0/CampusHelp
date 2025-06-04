@@ -1,0 +1,15 @@
+{
+  "files": {
+    "main.css": "/CampusHelp/static/css/main.7ef156ca.css",
+    "main.js": "/CampusHelp/static/js/main.6445b980.js",
+    "static/js/453.7edcc2fb.chunk.js": "/CampusHelp/static/js/453.7edcc2fb.chunk.js",
+    "index.html": "/CampusHelp/index.html",
+    "main.7ef156ca.css.map": "/CampusHelp/static/css/main.7ef156ca.css.map",
+    "main.6445b980.js.map": "/CampusHelp/static/js/main.6445b980.js.map",
+    "453.7edcc2fb.chunk.js.map": "/CampusHelp/static/js/453.7edcc2fb.chunk.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.7ef156ca.css",
+    "static/js/main.6445b980.js"
+  ]
+}
