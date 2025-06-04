@@ -122,7 +122,7 @@ const PatientMode = () => {
       newErrors.requestedTime = t('timeRequired') || 'Time is required';
     } else if (!isValidTimeFormat(formData.requestedTime)) {
       // Provide helpful error message for string time input
-      newErrors.requestedTime = t('timeFormatError') || 'Please enter a valid time (e.g., "2:30 PM", "14:30", or "2:30pm")';
+      newErrors.requestedTime = t('timeFormatError') || 'Please enter a valid time (e.g., 13:00:00 , 01:00:03")';
     }
     
     // Date validation (must be today or in the future)
