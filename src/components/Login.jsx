@@ -315,7 +315,7 @@ const Login = () => {
       }}>
         <h2 style={{ textAlign: 'center', color: '#222' }}>loading please wait</h2>
         <img
-          src="/loading.gif"
+          src={process.env.PUBLIC_URL + '/loading.gif'}
           alt="Loading..."
           style={{ width: 80, marginTop: 24 }}
         />
