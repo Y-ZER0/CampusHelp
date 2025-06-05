@@ -382,8 +382,12 @@ const Login = () => {
                 id="rememberMe"
                 name="rememberMe"
                 checked={formData.rememberMe}
-                onChange={handleChange}
-                disabled={isLoading}
+
+                // onChange={handleChange}
+                // disabled={isLoading}
+
+                //?disabling remember me button for security reasons
+                disabled
               />
               <label htmlFor="rememberMe">{t('rememberMe') || 'Remember me'}</label>
             </div>
