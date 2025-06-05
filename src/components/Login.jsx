@@ -386,8 +386,6 @@ const Login = () => {
                 // onChange={handleChange}
                 // disabled={isLoading}
 
-                //?disabling remember me button for security reasons
-                disabled
               />
               <label htmlFor="rememberMe">{t('rememberMe') || 'Remember me'}</label>
             </div>
