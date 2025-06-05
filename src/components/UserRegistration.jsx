@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from '../contexts/LanguageContext';
 import '../styling/Registration.css';
@@ -18,6 +18,7 @@ const UserRegistration = () => {
   });
   
   const [errors, setErrors] = useState({});
+  const [backendReady, setBackendReady] = useState(false);
 
   // Centralized API configuration
   const API_BASE_URL = "https://hci-proj-backend.onrender.com";
@@ -291,7 +292,47 @@ const UserRegistration = () => {
     window.dispatchEvent(new Event('storage'));
     navigate('/admin');
   };
-  
+
+  useEffect(() => {
+    let isMounted = true;
+    const pingBackend = async () => {
+      while (isMounted) {
+        try {
+          const res = await fetch(`${API_BASE_URL}/apis/ping`);
+          if (res.ok) {
+            setBackendReady(true);
+            break;
+          }
+        } catch (e) {
+          // Ignore errors, just retry
+        }
+        await new Promise(resolve => setTimeout(resolve, 1200));
+      }
+    };
+    pingBackend();
+    return () => { isMounted = false; };
+  }, []);
+
+  if (!backendReady) {
+    return (
+      <div style={{
+        minHeight: '100vh',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        background: '#fff'
+      }}>
+        <h2 style={{ textAlign: 'center', color: '#222' }}>loading please wait</h2>
+        <img
+          src="/loading.gif"
+          alt="Loading..."
+          style={{ width: 80, marginTop: 24 }}
+        />
+      </div>
+    );
+  }
+
   return (
     <div className="registration-container">
       <div className="registration-header">

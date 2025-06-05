@@ -20,7 +20,7 @@ const Login = () => {
   const [errors, setErrors] = useState({});
   const [isLoading, setIsLoading] = useState(false);
   const [userRequests, setUserRequests] = useState([]);
-  
+  const [backendReady, setBackendReady] = useState(false);
 
   
   // Simplified change handler with proper state management
@@ -282,6 +282,46 @@ const Login = () => {
     // Optionally, fetch user requests on component mount
     // fetchUserRequests();
   }, []);
+  
+  useEffect(() => {
+    let isMounted = true;
+    const pingBackend = async () => {
+      while (isMounted) {
+        try {
+          const res = await fetch(`${API_BASE_URL}/apis/ping`);
+          if (res.ok) {
+            setBackendReady(true);
+            break;
+          }
+        } catch (e) {
+          // Ignore errors, just retry
+        }
+        await new Promise(resolve => setTimeout(resolve, 1200));
+      }
+    };
+    pingBackend();
+    return () => { isMounted = false; };
+  }, []);
+  
+  if (!backendReady) {
+    return (
+      <div style={{
+        minHeight: '100vh',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        background: '#fff'
+      }}>
+        <h2 style={{ textAlign: 'center', color: '#222' }}>loading please wait</h2>
+        <img
+          src="/loading.gif"
+          alt="Loading..."
+          style={{ width: 80, marginTop: 24 }}
+        />
+      </div>
+    );
+  }
   
   return (
     <div className="login-container">
